@@ -9,6 +9,7 @@
 #include <cuda_runtime.h>
 #include <helper_cuda.h>
 #include <helper_functions.h>
+#include "GPUTUPLE.h"
 #include "GPUNIJ.h"
 #include "scan_common.h"
 
@@ -27,7 +28,7 @@ CUdeviceptr ltn_dev, rtn_dev;
 unsigned int block_x, block_y, grid_x, grid_y;
 
 void
-printDiff(struct timeval begin, struct timeval end)
+GPUNIJ::printDiff(struct timeval begin, struct timeval end)
 {
   long diff;
   
@@ -35,128 +36,18 @@ printDiff(struct timeval begin, struct timeval end)
   printf("Diff: %ld us (%ld ms)\n", diff, diff/1000);
 }
 
-static uint iDivUp(uint dividend, uint divisor)
+uint GPUNIJ::iDivUp(uint dividend, uint divisor)
 {
   return ((dividend % divisor) == 0) ? (dividend / divisor) : (dividend / divisor + 1);
 }
 
-/*
-static int
-getTupleId(void)
-{
-  static int id;
-  
-  return ++id;
-}
-
-void shuffle(TUPLE ary[],int size) {    
-  srand((unsigned)time(NULL));
-  for(int i=0;i<size;i++){
-    int j = rand()%size;
-    int t = ary[i].val[0];
-    ary[i].val[0] = ary[j].val[0];
-    ary[j].val[0] = t;
-  }
-}
-*/
-
 //初期化する
+/*
 void
-init(void)
+GPUNIJ::init(void)
 {
   
-  //RIGHT_TUPLEへのGPUでも参照できるメモリの割り当て
   CUresult res;
-
-  //メモリ割り当てを行う
-  //タプルに初期値を代入
-
-  //RIGHT_TUPLEへのGPUでも参照できるメモリの割り当て****************************
-  /*
-  res = cuMemHostAlloc((void**)&rt,arg_right * sizeof(TUPLE),CU_MEMHOSTALLOC_DEVICEMAP);
-  if (res != CUDA_SUCCESS) {
-    printf("cuMemHostAlloc to RIGHT_TUPLE failed: res = %lu\n", (unsigned long)res);
-    exit(1);
-  }
-
-
-  srand((unsigned)time(NULL));
-  uint *used;//usedなnumberをstoreする
-  used = (uint *)calloc(SELECTIVITY,sizeof(uint));
-  for(uint i=0; i<SELECTIVITY ;i++){
-    used[i] = i;
-  }
-  uint selec = SELECTIVITY;
-
-  //uniqueなnumberをvalにassignする
-  for (uint i = 0; i < arg_right; i++) {
-    if(&(rt[i])==NULL){
-      printf("right TUPLE allocate error.\n");
-      exit(1);
-    }
-    rt[i].id = getTupleId();
-    uint temp = rand()%selec;
-    uint temp2 = used[temp];
-    selec = selec-1;
-    used[temp] = used[selec];
-
-    for(uint j= 0 ; j<VAL_NUM ; j++){
-      rt[i].val[j] = temp2; 
-    }
-  }
-
-
-  //LEFT_TUPLEへのGPUでも参照できるメモリの割り当て*******************************
-  res = cuMemHostAlloc((void**)&lt,arg_left * sizeof(TUPLE),CU_MEMHOSTALLOC_DEVICEMAP);
-  if (res != CUDA_SUCCESS) {
-    printf("cuMemHostAlloc to LEFT_TUPLE failed: res = %lu\n", (unsigned long)res);
-    exit(1);
-  }
-
-  uint counter = 0;//matchするtupleをcountする。
-  uint *used_r;
-  used_r = (uint *)calloc(arg_right,sizeof(uint));
-  for(uint i=0; i<arg_right ; i++){
-    used_r[i] = i;
-  }
-  uint rg = arg_right;
-  uint l_diff;//
-  if(MATCH_RATE != 0){
-    l_diff = arg_left/(MATCH_RATE*arg_right);
-  }else{
-    l_diff = 1;
-  }
-  for (uint i = 0; i < arg_left; i++) {
-    lt[i].id = getTupleId();
-    if(i%l_diff == 0 && counter < MATCH_RATE*arg_right){
-      uint temp = rand()%rg;
-      uint temp2 = used_r[temp];
-      rg = rg-1;
-      used[temp] = used[rg];
-
-      for(uint j= 0 ; j<VAL_NUM ; j++){
-        lt[i].val[j] = rt[temp2].val[j];      
-      }
-      counter++;
-    }else{
-      uint temp = rand()%selec;
-      uint temp2 = used[temp];
-      selec = selec-1;
-      used[temp] = used[selec];
-      for(uint j= 0 ; j<VAL_NUM ; j++){
-        lt[i].val[j] = temp2; 
-      }
-    }
-  }
-
-  printf("%d\n",counter);
-
-  
-  free(used);
-  free(used_r);
-
-  shuffle(lt,arg_left);
-  */
 
   res = cuMemHostAlloc((void**)&jt,JT_SIZE * sizeof(JOIN_TUPLE),CU_MEMHOSTALLOC_DEVICEMAP);
   if (res != CUDA_SUCCESS) {
@@ -165,23 +56,10 @@ init(void)
   }
      
 }
-
-
-
-//メモリ解放のため新しく追加した関数。バグがあるかも
-void
-tuple_free(void){
-
-  if(jt != NULL){
-    cuMemFreeHost(jt);
-  }
-}
-
-
+*/
 
 //HrightとHleftをそれぞれ比較する。GPUで並列化するforループもここにあるもので行う。
-int
-join(TUPLE *lt,TUPLE *rt,int left,int right)
+int GPUNIJ::join(JOIN_TUPLE *resjt)
 {
 
   int i, j, idx;
@@ -243,15 +121,17 @@ join(TUPLE *lt,TUPLE *rt,int left,int right)
   }
   
   //タプルを初期化する
-  init();
+  //init();
+  //resjt = (JOIN_TUPLE *)malloc(JT_SIZE*sizeof(JOIN_TUPLE));
 
-  for(int i=0; i<4096 ; i++){
-    printf("lt[%d] = %d\n",i,lt[i].val[0]);
+
+  for(int i=0; i<left ; i++){
+    printf("lt[%d] = %d\n",i,lt[i].val);
 
   }
 
-  for(int i=0; i<4096 ; i++){
-    printf("rt[%d] = %d\n",i,rt[i].val[0]);
+  for(int i=0; i<right ; i++){
+    printf("rt[%d] = %d\n",i,rt[i].val);
 
   }
 
@@ -485,8 +365,7 @@ join(TUPLE *lt,TUPLE *rt,int left,int right)
           printf("cuMemcpyDtoH (jt) failed: res = %lu\n", (unsigned long)res);
           exit(1);
         }
-        
-        //downloadの時間計測
+                //downloadの時間計測
         gettimeofday(&time_download_f, NULL);
 
         down_time += (time_download_f.tv_sec - time_download_s.tv_sec) * 1000 * 1000 + (time_download_f.tv_usec - time_download_s.tv_usec);        
@@ -554,9 +433,12 @@ join(TUPLE *lt,TUPLE *rt,int left,int right)
 
   for(i=0;i<3&&i<JT_SIZE;i++){
     printf("[%d]:left %8d \t:right: %8d\n",i,jt[i].lkey,jt[i].rkey);
+    printf("join[%d]:left = %8d\tright = %8d\n",j,jt[i].lval,jt[i].rval);
+    /*
     for(j = 0;j<VAL_NUM;j++){
       printf("join[%d]:left = %8d\tright = %8d\n",j,jt[i].lval[j],jt[i].rval[j]);
     }
+    */
     printf("\n");
 
   }
@@ -575,11 +457,8 @@ join(TUPLE *lt,TUPLE *rt,int left,int right)
 
   /****************************************************************************/
 
-  //割り当てたメモリを開放する
-  tuple_free();
-
-  return 0;
-
+  resjt = jt;
+  return total;
 
 }
 

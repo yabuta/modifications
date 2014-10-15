@@ -13,7 +13,7 @@
 #define SCAN_COMMON_H
 
 #include <stdlib.h>
-//#include <cuda.h>
+#include <cuda.h>
 
 /*
 namespace voltdb{

@@ -137,7 +137,7 @@ public:
 ////////////////////////////////////////////////////////////////////////////////
 // Shortcut typename
 ////////////////////////////////////////////////////////////////////////////////
-    typedef unsigned int uint;
+//    typedef unsigned int uint;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Implementation limits
@@ -188,14 +188,6 @@ public:
         uint loc
         );
 
-/*
-    extern "C" void getValue_gpu(
-        uint *d_Dst,
-        uint *d_Src,
-        uint loc
-        );
-*/
-
     extern "C" uint presum(
         CUdeviceptr *d_Input,
         uint arrayLength
@@ -213,14 +205,6 @@ public:
         uint loc,
         uint *res
         );
-
-/*
-    extern "C" uint getValue(
-        CUdeviceptr d_Input,
-        uint tnum,
-        uint *res
-        );
-*/
 
 
 #endif

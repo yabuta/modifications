@@ -13,6 +13,7 @@
 #include <assert.h>
 #include <sys/time.h>
 #include <helper_cuda.h>
+#include "GPUTUPLE.h"
 #include "scan_common.h"
 
 //All three kernels run 512 threads per workgroup
@@ -272,13 +273,19 @@ extern "C" const uint MIN_LARGE_ARRAY_SIZE = 8 * THREADBLOCK_SIZE;
 extern "C" const uint MAX_LARGE_ARRAY_SIZE = 4 * THREADBLOCK_SIZE * THREADBLOCK_SIZE;
 extern "C" const uint MIN_LL_SIZE = 8 * THREADBLOCK_SIZE * THREADBLOCK_SIZE;
 extern "C" const uint MAX_LL_SIZE = MAX_BATCH_ELEMENTS;//4 * THREADBLOCK_SIZE * THREADBLOCK_SIZE * THREADBLOCK_SIZE;
-
+//extern "C" const uint 
 
 //Internal exclusive scan buffer
 static uint *d_Buf;
 static uint *e_Buf;
 
-extern "C" void initScan(void)
+uint iDivUp(uint dividend, uint divisor)
+{
+  return ((dividend % divisor) == 0) ? (dividend / divisor) : (dividend / divisor + 1);
+}
+
+
+void initScan(void)
 {
 
   cudaMalloc((void **)&d_Buf, (MAX_BATCH_ELEMENTS / (4 * THREADBLOCK_SIZE)) * sizeof(uint));
@@ -287,7 +294,7 @@ extern "C" void initScan(void)
 
 }
 
-extern "C" void closeScan(void)
+void closeScan(void)
 {
     checkCudaErrors(cudaFree(d_Buf));
     checkCudaErrors(cudaFree(e_Buf));
@@ -309,12 +316,14 @@ static uint factorRadix2(uint &log2L, uint L)
     }
 }
 
+/*
 static uint iDivUp(uint dividend, uint divisor)
 {
     return ((dividend % divisor) == 0) ? (dividend / divisor) : (dividend / divisor + 1);
 }
+*/
 
-extern "C" size_t scanExclusiveShort(
+size_t scanExclusiveShort(
     uint *d_Dst,
     uint *d_Src,
     uint arrayLength
@@ -344,7 +353,7 @@ extern "C" size_t scanExclusiveShort(
     return THREADBLOCK_SIZE;
 }
 
-extern "C" size_t scanExclusiveLarge(
+size_t scanExclusiveLarge(
     uint *d_Dst,
     uint *d_Src,
     uint arrayLength
@@ -401,7 +410,7 @@ extern "C" size_t scanExclusiveLarge(
     return THREADBLOCK_SIZE;
 }
 
-extern "C" size_t scanExclusiveLL(
+size_t scanExclusiveLL(
     uint *d_Dst,
     uint *d_Src,
     uint arrayLength
@@ -492,7 +501,7 @@ extern "C" size_t scanExclusiveLL(
 }
 
 
-extern "C" size_t diff_Part(
+size_t diff_Part(
     uint *d_Dst,
     uint *d_Src,
     uint diff,
@@ -517,7 +526,7 @@ extern "C" size_t diff_Part(
 
 
 //transport input data to output per diff
-extern "C" void transport_gpu(
+void transport_gpu(
     uint *d_Dst,
     uint *d_Src,
     uint loc

@@ -21,7 +21,7 @@ bool eval(TUPLE rt,TUPLE lt){
   }
   return temp < DISTANCE * DISTANCE;
   */
-  return rt.val[0]==lt.val[0];
+  return rt.val==lt.val;
 
 }
 
@@ -105,10 +105,14 @@ __global__ void join(
 
         p[writeloc].rkey = Tright[j].key;
         p[writeloc].lkey = Tleft.key;
+        p[writeloc].rval = Tright[j].val;  
+        p[writeloc].lval = Tleft.val;    
+        /*            
         for(uint valnum=0; valnum<VAL_NUM ; valnum++){
           p[writeloc].rval[valnum] = Tright[j].val[valnum];  
           p[writeloc].lval[valnum] = Tleft.val[valnum];                
         }
+        */
         writeloc++;
         
       }

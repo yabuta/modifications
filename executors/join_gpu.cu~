@@ -103,8 +103,8 @@ __global__ void join(
  
       if(eval(Tright[j],Tleft)) {
 
-        p[writeloc].rid = Tright[j].id;
-        p[writeloc].lid = Tleft.id;
+        p[writeloc].rkey = Tright[j].key;
+        p[writeloc].lkey = Tleft.key;
         for(uint valnum=0; valnum<VAL_NUM ; valnum++){
           p[writeloc].rval[valnum] = Tright[j].val[valnum];  
           p[writeloc].lval[valnum] = Tleft.val[valnum];                

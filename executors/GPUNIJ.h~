@@ -6,38 +6,166 @@ GPUで動かすため配列のほうが向いていると思ったので
 配列に変更している
 ********************************/
 
+#ifdef GPUNIJ_H
+#define GPUNIJ_H
+
+
+
 //1blockでのスレッド数の定義。
 #define BLOCK_SIZE_X 256  //outer ,left
 #define BLOCK_SIZE_Y 512  //inner ,right
 
-#define PART 4096
 
 
 #define JT_SIZE 120000000
 #define SELECTIVITY 1000000000
 #define MATCH_RATE 1
-
-
+    
+    
 #define VAL_NUM 1
-
+    
 typedef struct _TUPLE {
     int key;
-    int val[VAL_NUM];
-
+    int val;
+    
 } TUPLE;
 
 typedef struct _JOIN_TUPLE {
     int key;
     int lkey;
-    int lval[VAL_NUM]; // left value
+    int lval; // left value
     int rkey;
-    int rval[VAL_NUM]; // right value
+    int rval; // right value
 } JOIN_TUPLE;
 
-int join(TUPLE *lt,TUPLE *rt);
+
+class GPUNIJ {
+
+public:
+
+#define PART 4096
+    
+    
+    TUPLE *lt,*rt;
+    JOIN_TUPLE *jt;
+
+    GPUNIJ(TUPLE *tlt,TUPLE *trt,int leftSize,int rightSize){
+        
+        lt = tlt;
+        rt = trt;
+        jt = (JOIN_TUPLE *)malloc(JT_SIZE*sizeof(JOIN_TUPLE));
+
+        left = leftSize;
+        right = rightSize;
+
+    }
+
+    ~GPUNIJ(){
+        free(jt);
+    }
+    
+    int join(JOIN_TUPLE *jt);
+
+private:
+    CUresult res;
+    CUdevice dev;
+    CUcontext ctx;
+    CUfunction function,c_function;
+    CUmodule module,c_module;
+    CUdeviceptr lt_dev, rt_dev, jt_dev,count_dev, pre_dev;
+    CUdeviceptr ltn_dev, rtn_dev;
+    unsigned int block_x, block_y, grid_x, grid_y;
+    
+    void printDiff(struct timeval begin, struct timeval end);
+
+    static uint iDivUp(uint dividend, uint divisor);
+
+//Internal exclusive scan buffer
+    static uint *d_Buf;
+    static uint *e_Buf;
 
 
-//テーブルを表示するときのタプルの間隔。タプルが多いと大変なことになるため
-#define PER_SHOW 1000000//10000000
+
+////////////////////////////////////////////////////////////////////////////////
+// Shortcut typename
+////////////////////////////////////////////////////////////////////////////////
+#define SUCCESS 1
+#define FALSE 0
 
 
+////////////////////////////////////////////////////////////////////////////////
+// Shortcut typename
+////////////////////////////////////////////////////////////////////////////////
+//    typedef unsigned int uint;
+
+////////////////////////////////////////////////////////////////////////////////
+// Implementation limits
+////////////////////////////////////////////////////////////////////////////////
+    uint MAX_BATCH_ELEMENTS;
+    uint MIN_SHORT_ARRAY_SIZE;
+    uint MAX_SHORT_ARRAY_SIZE;
+    uint MIN_LARGE_ARRAY_SIZE;
+    uint MAX_LARGE_ARRAY_SIZE;
+    uint MAX_LL_SIZE;
+    uint MIN_LL_SIZE;
+    
+////////////////////////////////////////////////////////////////////////////////
+// CUDA scan
+////////////////////////////////////////////////////////////////////////////////
+    void initScan(void);
+    void closeScan(void);
+    
+    size_t scanExclusiveShort(
+        uint *d_Dst,
+        uint *d_Src,
+        uint arrayLength
+        );
+
+    size_t scanExclusiveLarge(
+        uint *d_Dst,
+        uint *d_Src,
+        uint arrayLength
+        );
+
+    size_t scanExclusiveLL(
+        uint *d_Dst,
+        uint *d_Src,
+        uint arrayLength
+        );
+
+    CUdeviceptr diff_part(
+        CUdeviceptr d_Input,
+        uint tnum,
+        uint arrayLength,
+        uint size
+        );
+
+    void transport_gpu(
+        uint *d_Dst,
+        uint *d_Src,
+        uint loc
+        );
+
+    uint presum(
+        CUdeviceptr *d_Input,
+        uint arrayLength
+        );
+
+    CUdeviceptr diff_part(
+        CUdeviceptr d_Input,
+        uint tnum,
+        uint arrayLength,
+        uint size
+        );
+
+    uint transport(
+        CUdeviceptr d_Input,
+        uint loc,
+        uint *res
+        );
+
+
+
+};
+
+#endif

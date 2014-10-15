@@ -9,13 +9,12 @@
  *
  */
 
-#include <cuda.h>
-#include <cuda_runtime.h>
-#include <assert.h>
-#include <helper_cuda.h>
-#include "scan_common.h"
-//#include "nestloopexecutor.h"
 
+#include <assert.h>
+#include <sys/time.h>
+#include <helper_cuda.h>
+#include "GPUNIJ.h"
+//#include "scan_common.h"
 
 //All three kernels run 512 threads per workgroup
 //Must be a power of two
@@ -91,29 +90,21 @@ inline __device__ uint4 scan4Exclusive(uint4 idata4, volatile uint *s_Data, uint
 __global__ void scanExclusiveShared(
     uint4 *d_Dst,
     uint4 *d_Src,
-    uint N,
     uint size
 )
 {
     __shared__ uint s_Data[2 * THREADBLOCK_SIZE];
 
     uint pos = blockIdx.x * blockDim.x + threadIdx.x;
-    //Load data
-    uint4 idata4;
-    idata4.x = 0;
-    idata4.y = 0;
-    idata4.z = 0;
-    idata4.w = 0;
 
-    if(pos<N){
-      idata4 = d_Src[pos];
-    }
+    //Load data
+    uint4 idata4 = d_Src[pos];
+
     //Calculate exclusive scan
     uint4 odata4 = scan4Exclusive(idata4, s_Data, size);
+
     //Write back
-    if(pos<N){
-      d_Dst[pos] = odata4;
-    }      
+    d_Dst[pos] = odata4;
 }
 
 //Exclusive scan of top elements of bottom-level scans (4 * THREADBLOCK_SIZE)
@@ -258,35 +249,13 @@ __global__ void diff_kernel(
 __global__ void transport_kernel(
     uint *d_Data,
     uint *d_Src,
-    uint pnum,
-    uint length,
-    uint size
-)
-{
-
-  uint pos = blockIdx.x * blockDim.x + threadIdx.x;
-  uint p_n = pnum;
-  uint len = length;
-  uint POS = pos * LOOP_PERTHREAD2;
-  uint i;
-
-  for(i = POS ; (i < POS + LOOP_PERTHREAD2)&&(i < len); i++){      
-    d_Data[i] = d_Src[i * p_n];
-  }
-
-  if(i == len){
-    d_Data[len] = size;
-  }
-
-}
-
-__global__ void getValue_kernel(
-    uint *d_Data,
-    uint *d_Src,
     uint loc
+
 )
 {
+
   d_Data[0] = d_Src[loc-1];
+
 
 }
 
@@ -297,29 +266,26 @@ __global__ void getValue_kernel(
 ////////////////////////////////////////////////////////////////////////////////
 //Derived as 32768 (max power-of-two gridDim.x) * 4 * THREADBLOCK_SIZE
 //Due to scanExclusiveShared<<<>>>() 1D block addressing
-extern "C" const uint MAX_BATCH_ELEMENTS = 4 * THREADBLOCK_SIZE * THREADBLOCK_SIZE * THREADBLOCK_SIZE;
-extern "C" const uint MIN_SHORT_ARRAY_SIZE = 4;
-extern "C" const uint MAX_SHORT_ARRAY_SIZE = 4 * THREADBLOCK_SIZE;
-extern "C" const uint MIN_LARGE_ARRAY_SIZE = 8 * THREADBLOCK_SIZE;
-extern "C" const uint MAX_LARGE_ARRAY_SIZE = 4 * THREADBLOCK_SIZE * THREADBLOCK_SIZE;
-extern "C" const uint MIN_LL_SIZE = 8 * THREADBLOCK_SIZE * THREADBLOCK_SIZE;
-extern "C" const uint MAX_LL_SIZE = MAX_BATCH_ELEMENTS;//4 * THREADBLOCK_SIZE * THREADBLOCK_SIZE * THREADBLOCK_SIZE;
+uint MAX_BATCH_ELEMENTS = 4 * THREADBLOCK_SIZE * THREADBLOCK_SIZE * THREADBLOCK_SIZE;
+uint MIN_SHORT_ARRAY_SIZE = 4;
+uint MAX_SHORT_ARRAY_SIZE = 4 * THREADBLOCK_SIZE;
+uint MIN_LARGE_ARRAY_SIZE = 8 * THREADBLOCK_SIZE;
+uint MAX_LARGE_ARRAY_SIZE = 4 * THREADBLOCK_SIZE * THREADBLOCK_SIZE;
+uint MIN_LL_SIZE = 8 * THREADBLOCK_SIZE * THREADBLOCK_SIZE;
+uint MAX_LL_SIZE = MAX_BATCH_ELEMENTS;//4 * THREADBLOCK_SIZE * THREADBLOCK_SIZE * THREADBLOCK_SIZE;
+//extern "C" const uint MAX_LL_SIZE = MAX_BATCH_ELEMENTS;//4 * THREADBLOCK_SIZE * THREADBLOCK_SIZE * THREADBLOCK_SIZE;
 
 
-//Internal exclusive scan buffer
-static uint *d_Buf;
-static uint *e_Buf;
-
-//extern "C" void NestLoopExecutor::initScan(void)
-void initScan(void)
+void GPUNIJ::initScan(void)
 {
-    checkCudaErrors(cudaMalloc((void **)&d_Buf, (MAX_BATCH_ELEMENTS / (4 * THREADBLOCK_SIZE)) * sizeof(uint)));
-    checkCudaErrors(cudaMalloc((void **)&e_Buf, (MAX_BATCH_ELEMENTS / (4 * THREADBLOCK_SIZE * THREADBLOCK_SIZE)) * sizeof(uint)));
+
+  cudaMalloc((void **)&d_Buf, (MAX_BATCH_ELEMENTS / (4 * THREADBLOCK_SIZE)) * sizeof(uint));
+  
+  checkCudaErrors(cudaMalloc((void **)&e_Buf, (MAX_BATCH_ELEMENTS / (4 * THREADBLOCK_SIZE * THREADBLOCK_SIZE)) * sizeof(uint)));
 
 }
 
-//extern "C" void NestLoopExecutor::closeScan(void)
-void closeScan(void)
+void GPUNIJ::closeScan(void)
 {
     checkCudaErrors(cudaFree(d_Buf));
     checkCudaErrors(cudaFree(e_Buf));
@@ -341,14 +307,14 @@ static uint factorRadix2(uint &log2L, uint L)
     }
 }
 
+/*
 static uint iDivUp(uint dividend, uint divisor)
 {
     return ((dividend % divisor) == 0) ? (dividend / divisor) : (dividend / divisor + 1);
 }
+*/
 
-
-//extern "C" size_t NestLoopExecutor::scanExclusiveShort(
-size_t scanExclusiveShort(
+size_t GPUNIJ::scanExclusiveShort(
     uint *d_Dst,
     uint *d_Src,
     uint arrayLength
@@ -371,7 +337,6 @@ size_t scanExclusiveShort(
     scanExclusiveShared<<<arrayLength / (4 * THREADBLOCK_SIZE), THREADBLOCK_SIZE>>>(
         (uint4 *)d_Dst,
         (uint4 *)d_Src,
-        arrayLength/4,
         arrayLength
     );
     getLastCudaError("scanExclusiveShared() execution FAILED\n");
@@ -379,8 +344,7 @@ size_t scanExclusiveShort(
     return THREADBLOCK_SIZE;
 }
 
-//extern "C" size_t NestLoopExecutor::scanExclusiveLarge(
-size_t scanExclusiveLarge(
+size_t GPUNIJ::scanExclusiveLarge(
     uint *d_Dst,
     uint *d_Src,
     uint arrayLength
@@ -403,7 +367,6 @@ size_t scanExclusiveLarge(
     scanExclusiveShared<<<arrayLength / (4 * THREADBLOCK_SIZE), THREADBLOCK_SIZE>>>(
         (uint4 *)d_Dst,
         (uint4 *)d_Src,
-        arrayLength/4,
         4 * THREADBLOCK_SIZE
     );
     getLastCudaError("scanExclusiveShared() execution FAILED\n");
@@ -438,8 +401,7 @@ size_t scanExclusiveLarge(
     return THREADBLOCK_SIZE;
 }
 
-//extern "C" size_t NestLoopExecutor::scanExclusiveLL(
-size_t scanExclusiveLL(
+size_t GPUNIJ::scanExclusiveLL(
     uint *d_Dst,
     uint *d_Src,
     uint arrayLength
@@ -462,13 +424,14 @@ size_t scanExclusiveLL(
     scanExclusiveShared<<<arrayLength / (4 * THREADBLOCK_SIZE), THREADBLOCK_SIZE>>>(
         (uint4 *)d_Dst,
         (uint4 *)d_Src,
-        arrayLength/4,
         4 * THREADBLOCK_SIZE
     );
     getLastCudaError("scanExclusiveShared() execution FAILED\n");
     checkCudaErrors(cudaDeviceSynchronize());
 
     //Now ,prefix sum per THREADBLOCK_SIZE done
+
+
     //Not all threadblocks need to be packed with input data:
     //inactive threads of highest threadblock just don't do global reads and writes
 
@@ -504,7 +467,6 @@ size_t scanExclusiveLL(
         (uint *)d_Src,
         arrayLength / (4 * THREADBLOCK_SIZE * THREADBLOCK_SIZE),
         array_temp
-        //arrayLength / (4 * THREADBLOCK_SIZE * THREADBLOCK_SIZE)
     );
     getLastCudaError("scanExclusiveShared3() execution FAILED\n");
     checkCudaErrors(cudaDeviceSynchronize());
@@ -530,8 +492,7 @@ size_t scanExclusiveLL(
 }
 
 
-//extern "C" size_t NestLoopExecutor::diff_Part(
-size_t diff_Part(
+size_t GPUNIJ::diff_Part(
     uint *d_Dst,
     uint *d_Src,
     uint diff,
@@ -539,9 +500,6 @@ size_t diff_Part(
     uint size
 )
 {
-
-    //Check total batch size limit
-    //assert((arrayLength) <= MAX_BATCH_ELEMENTS);
 
     const uint blockCount = iDivUp(arrayLength , LOOP_PERTHREAD*THREADBLOCK_SIZE);
     diff_kernel<<<blockCount, THREADBLOCK_SIZE>>>(
@@ -557,35 +515,9 @@ size_t diff_Part(
     return THREADBLOCK_SIZE;
 }
 
-//extern "C" void NestLoopExecutor::transport_gpu(
-void transport_gpu(
-    uint *d_Dst,
-    uint *d_Src,
-    uint diff,
-    uint arrayLength,
-    uint size
-)
-{
-
-    //Check total batch size limit
-    //assert((arrayLength) <= MAX_BATCH_ELEMENTS);
-
-    const uint blockCount = iDivUp(arrayLength , LOOP_PERTHREAD2*THREADBLOCK_SIZE);
-    transport_kernel<<<blockCount, THREADBLOCK_SIZE>>>(
-        d_Dst,
-        d_Src,
-        diff,
-        arrayLength,
-        size
-    );
-    getLastCudaError("transport_gpu() execution FAILED\n");
-    checkCudaErrors(cudaDeviceSynchronize());
-
-}
-
 
 //transport input data to output per diff
-void getValue_gpu(
+void GPUNIJ::transport_gpu(
     uint *d_Dst,
     uint *d_Src,
     uint loc
@@ -595,11 +527,12 @@ void getValue_gpu(
     //Check total batch size limit
     //assert((arrayLength) <= MAX_BATCH_ELEMENTS);
 
-  getValue_kernel<<<1, 1>>>(
-                            d_Dst,
-                            d_Src,
-                            loc
-                            );
+  const uint blockCount = 1;//iDivUp(arrayLength , LOOP_PERTHREAD2*THREADBLOCK_SIZE);
+  transport_kernel<<<blockCount, 1>>>(
+                                                     d_Dst,
+                                                     d_Src,
+                                                     loc
+                                                     );
   getLastCudaError("transport_gpu() execution FAILED\n");
   checkCudaErrors(cudaDeviceSynchronize());
 

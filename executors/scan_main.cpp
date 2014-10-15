@@ -27,16 +27,14 @@ part_presum calculate difference of discrete element of array.
 #include <cuda_runtime.h>
 #include <helper_cuda.h>
 #include <helper_functions.h>
-
-//#include "nestloopexecutor.h"
+#include "GPUTUPLE.h"
+//#include "GPUNIJ.h"
 #include "scan_common.h"
-
 
 static uint iDivUp(uint dividend, uint divisor)
 {
     return ((dividend % divisor) == 0) ? (dividend / divisor) : (dividend / divisor + 1);
 }
-
 
 uint presum(CUdeviceptr *d_Input, uint arrayLength)
 {
@@ -166,27 +164,3 @@ uint transport(CUdeviceptr d_Input , uint loc , uint *res){
 
 
 }
-
-/*
-uint getValue(CUdeviceptr d_Input , uint loc , uint *res){
-
-  CUdeviceptr d_Output;
-  
-  checkCudaErrors(cudaMalloc((void **)&d_Output, sizeof(int)));
-  checkCudaErrors(cudaDeviceSynchronize());
-
-  getValue_gpu((uint *)d_Output, (uint *)d_Input, loc);
-  checkCudaErrors(cudaDeviceSynchronize());
-
-  if(cuMemcpyDtoH(res,d_Output,sizeof(uint)) != CUDA_SUCCESS){
-    printf("cuMemcpyDtoH(d_Output) error.\n");
-    exit(1);
-  }
-
-  cuMemFree(d_Output);
-
-  return SUCCESS;
-
-
-}
-*/

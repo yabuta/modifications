@@ -47,8 +47,8 @@
 #include <stack>
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include "scan_common.h"
 #include "GPUNIJ.h"
+#include "GPUTUPLE.h"
 #include "nestloopexecutor.h"
 #include "common/debuglog.h"
 #include "common/common.h"
@@ -71,6 +71,7 @@
 #include <sys/times.h>
 #include <unistd.h>
 #endif
+
 
 using namespace std;
 using namespace voltdb;
@@ -105,94 +106,6 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
     VOLT_DEBUG("executing NestLoop...");
 
     std::cout << "GPU init\n";
-
-    int N = 4 * 1024;
-    /*
-    CUresult res;
-    CUdevice dev;
-    CUcontext ctx;
-    CUdeviceptr count_dev;
-    int count[N];
-    */
-
-    TUPLE temp[N],temp2[N];
-    for(int i=0 ; i<N ; i++){
-      temp[i].key = i;
-      temp[i].val[0] = i;
-    }
-    for(int i=0 ; i<10 ; i++){
-      temp2[i].key = i;
-      temp2[i].val[0] = i;
-    }
-    for(int i=10 ; i<N ; i++){
-      temp2[i].key = i;
-      temp2[i].val[0] = i+N;
-    }
-
-
-    join(temp,temp2,N,N);
-
-
-    /*
-    res = cuInit(0);
-    if (res != CUDA_SUCCESS) {
-      printf("cuInit failed: res = %lu\n", (unsigned long)res);
-      exit(1);
-    }
-
-    res = cuDeviceGet(&dev, 0);
-    if (res != CUDA_SUCCESS) {
-      printf("cuDeviceGet failed: res = %lu\n", (unsigned long)res);
-      exit(1);
-    }
-    res = cuCtxCreate(&ctx, 0, dev);
-    if (res != CUDA_SUCCESS) {
-      printf("cuCtxCreate failed: res = %lu\n", (unsigned long)res);
-      exit(1);
-    }
-
-    res = cuMemAlloc(&count_dev, N * sizeof(int));
-    if (res != CUDA_SUCCESS) {
-      printf("cuMemAlloc (count) failed\n");
-      exit(1);
-    }
-
-    res = cuMemcpyHtoD(count_dev, count, N * sizeof(int));
-    if (res != CUDA_SUCCESS) {
-      printf("cuMemcpyHtoD (count) failed: res = %lu\n", (unsigned long)res);//conv(res));
-      exit(1);
-    }
-
-
-    if(!(presum(&count_dev,N))){
-      printf("count presum error\n");
-      exit(1);
-    }
-
-    res = cuMemcpyDtoH(count,count_dev,N * sizeof(int));
-    if(res != CUDA_SUCCESS){
-      printf("cuMemcpyDtoH (count) failed: res = %lu\n", (unsigned long)res);
-      exit(1);
-    }
-
-    for(int i=0 ; i<1024 ;i++){
-      printf("%d = %d\n",i,count[i]);
-    }
-
-    res = cuMemFree(count_dev);
-    if (res != CUDA_SUCCESS) {
-      printf("cuMemFree (count) failed: res = %lu\n", (unsigned long)res);
-      exit(1);
-    }
-
-
-
-    res = cuCtxDestroy(ctx);
-    if (res != CUDA_SUCCESS) {
-      printf("cuCtxDestroy failed: res = %lu\n", (unsigned long)res);
-      exit(1);
-    }
-    */
 
     NestLoopPlanNode* node = dynamic_cast<NestLoopPlanNode*>(m_abstractNode);
     assert(node);
@@ -235,10 +148,12 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
                     "NULL" : wherePredicate->debug(true).c_str());
     }
 
+
     // Join type
+    /*
     JoinType join_type = node->getJoinType();
     assert(join_type == JOIN_TYPE_INNER || join_type == JOIN_TYPE_LEFT);
-
+    */
     LimitPlanNode* limit_node = dynamic_cast<LimitPlanNode*>(node->getInlinePlanNode(PLAN_NODE_TYPE_LIMIT));
     int limit = -1;
     int offset = -1;
@@ -250,11 +165,12 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
     int inner_cols = inner_table->columnCount();
     TableTuple outer_tuple(node->getInputTable(0)->schema());
     TableTuple inner_tuple(node->getInputTable(1)->schema());
-    const TableTuple& null_tuple = m_null_tuple.tuple();
+    //const TableTuple& null_tuple = m_null_tuple.tuple();
 
     TableIterator iterator0 = outer_table->iteratorDeletingAsWeGo();
-    int tuple_ctr = 0;
-    int tuple_skipped = 0;
+    TableIterator iterator1 = inner_table->iterator();
+    //int tuple_ctr = 0;
+    //int tuple_skipped = 0;
     ProgressMonitorProxy pmp(m_engine, this, inner_table);
 
     TableTuple join_tuple;
@@ -266,6 +182,78 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
         join_tuple = m_tmpOutputTable->tempTuple();
     }
 
+
+
+    TUPLE *lt,*rt;
+    JOIN_TUPLE *jt = NULL;
+
+    int i=0;
+    char *temp;
+    int leftSize=0,rightSize=0,jt_size=0;
+    leftSize = (int)outer_table->activeTupleCount();
+    rightSize = (int)inner_table->activeTupleCount();
+    printf("leftsize:%d\trightsize:%d\n",leftSize,rightSize);
+    lt = (TUPLE *)malloc(leftSize*sizeof(TUPLE));
+    rt = (TUPLE *)malloc(rightSize*sizeof(TUPLE));
+    //jt = (JOIN_TUPLE *)malloc(JT_SIZE*sizeof(JOIN_TUPLE));
+
+    while(iterator0.next(outer_tuple)){
+      temp = outer_tuple.address();
+      memcpy(&lt[i],&temp[1],sizeof(int)*2);
+      i++;
+    }
+    i=0;
+    while(iterator1.next(inner_tuple)){
+      temp = inner_tuple.address();
+      memcpy(&rt[i],&temp[1],sizeof(int)*2);
+      i++;
+    }
+
+    printf("left table values:\n");
+    for(i=0 ; i<leftSize; i++){
+      printf("id:%d\tval:%d\n",i,lt[i].val);
+    }
+    printf("right table values:\n");
+    for(i=0 ; i<rightSize; i++){
+      printf("id:%d\tval:%d\n",i,rt[i].val);
+    }
+
+    GPUNIJ gn(lt,rt,leftSize,rightSize);
+
+    jt_size = gn.join(jt);
+
+    printf("jt_size = %d\n",jt_size);
+
+
+    for(int i=0; i<jt_size ; i++){
+      temp = outer_tuple.address();
+      memcpy(&temp[1],&(jt[i].lkey),sizeof(int)*2);
+      temp = inner_tuple.address();
+      memcpy(&temp[1],&(jt[i].rkey),sizeof(int)*2);
+
+      join_tuple.setNValues(0, outer_tuple, 0, outer_cols);
+      join_tuple.setNValues(outer_cols, inner_tuple, 0, inner_cols);
+      //m_tmpOutputTable->insertTempTuple(join_tuple);
+      if (m_aggExec != NULL) {
+        if (m_aggExec->p_execute_tuple(join_tuple)) {
+          // Get enough rows for LIMIT
+          //earlyReturned = true;
+          break;
+        }
+      } else {
+        m_tmpOutputTable->insertTempTuple(join_tuple);
+        //pmp.countdownProgress();
+      }
+    }
+
+    //gn.~GPUNIJ();
+
+    free(lt);
+    free(rt);
+    //free(jt);
+
+
+    /*
     bool earlyReturned = false;
     while ((limit == -1 || tuple_ctr < limit) && iterator0.next(outer_tuple)){
         pmp.countdownProgress();
@@ -345,7 +333,7 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
         }
 
     } // END OUTER WHILE LOOP
-
+    */
     if (m_aggExec != NULL) {
         m_aggExec->p_execute_finish();
     }

@@ -29,16 +29,17 @@ part_presum calculate difference of discrete element of array.
 #include <helper_functions.h>
 
 //#include "nestloopexecutor.h"
-#include "scan_common.h"
+#include "GPUNIJ.h"
+//#include "scan_common.h"
 
-
+/*
 static uint iDivUp(uint dividend, uint divisor)
 {
     return ((dividend % divisor) == 0) ? (dividend / divisor) : (dividend / divisor + 1);
 }
+*/
 
-
-uint presum(CUdeviceptr *d_Input, uint arrayLength)
+uint GPUNIJ::presum(CUdeviceptr *d_Input, uint arrayLength)
 {
   //printf("Starting...\n\n");
 
@@ -125,7 +126,7 @@ part_presum
 
  **/
 
-CUdeviceptr diff_part(CUdeviceptr d_Input , uint tnum , uint arrayLength, uint size){
+CUdeviceptr GPUNIJ::diff_part(CUdeviceptr d_Input , uint tnum , uint arrayLength, uint size){
 
   
   CUdeviceptr d_Output;
@@ -144,32 +145,15 @@ CUdeviceptr diff_part(CUdeviceptr d_Input , uint tnum , uint arrayLength, uint s
 
 }
 
-CUdeviceptr transport(CUdeviceptr d_Input , uint tnum , uint arrayLength, uint size){
+uint GPUNIJ::transport(CUdeviceptr d_Input , uint loc , uint *res){
 
   CUdeviceptr d_Output;
-  
-  checkCudaErrors(cudaMalloc((void **)&d_Output, (arrayLength+1) * sizeof(uint)));
-  checkCudaErrors(cudaDeviceSynchronize());
 
-  transport_gpu((uint *)d_Output, (uint *)d_Input, tnum, arrayLength,size);
-  //szWorkgroup = scanExclusiveLarge((uint *)d_Output, (uint *)d_Input, pnum, N);
-  checkCudaErrors(cudaDeviceSynchronize());
-
-  // pass or fail (cumulative... all tests in the loop)
-
-  return d_Output;
-
-
-}
-
-uint getValue(CUdeviceptr d_Input , uint loc , uint *res){
-
-  CUdeviceptr d_Output;
-  
   checkCudaErrors(cudaMalloc((void **)&d_Output, sizeof(int)));
   checkCudaErrors(cudaDeviceSynchronize());
 
-  getValue_gpu((uint *)d_Output, (uint *)d_Input, loc);
+  transport_gpu((uint *)d_Output, (uint *)d_Input, loc);
+  //szWorkgroup = scanExclusiveLarge((uint *)d_Output, (uint *)d_Input, pnum, N);
   checkCudaErrors(cudaDeviceSynchronize());
 
   if(cuMemcpyDtoH(res,d_Output,sizeof(uint)) != CUDA_SUCCESS){
@@ -177,7 +161,7 @@ uint getValue(CUdeviceptr d_Input , uint loc , uint *res){
     exit(1);
   }
 
-  cuMemFree(d_Output);
+  // pass or fail (cumulative... all tests in the loop)
 
   return SUCCESS;
 

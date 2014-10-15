@@ -281,22 +281,21 @@ def buildMakefile(CTX):
             os.system("mkdir -p %s" % (jni_targetpath))
             os.system("mkdir -p %s" % (static_targetpath))
             SCAN_PATH = "../../src/ee/executors/"
-            #makefile.write("nativelibs/libscan.so: ../../src/ee/executors/scan.cu ../../src/ee/executors/scan_main.cpp ../../src/ee/executors/scan_common.h\n")
-            makefile.write("objects/executors/scan.co:../../src/ee/executors/scan.cu ../../src/ee/executors/scan_common.h\n")
+
+            makefile.write("objects/executors/scan.co:../../src/ee/executors/scan.cu ../../src/ee/executors/GPUNIJ.h ../../src/ee/executors/GPUTUPLE.h\n")
             makefile.write("\tnvcc $(INCLUDE) -Xcompiler '-fPIC' -arch sm_35 -c -o objects/executors/scan.co %sscan.cu\n"%(SCAN_PATH))
-            makefile.write("objects/executors/join_gpu.cubin:../../src/ee/executors/join_gpu.cu ../../src/ee/executors/GPUNIJ.h\n")
+
+            makefile.write("objects/executors/join_gpu.cubin:../../src/ee/executors/join_gpu.cu ../../src/ee/executors/GPUNIJ.h ../../src/ee/executors/GPUTUPLE.h\n")
             makefile.write("\tnvcc $(INCLUDE) -arch sm_35 -cubin -o objects/executors/join_gpu.cubin %sjoin_gpu.cu\n"%(SCAN_PATH))
-            #makefile.write("\tnvcc $(INCLUDE) -Xcompiler '-fPIC' -arch sm_35 -o objects/executors/join_gpu.co %sjoin_gpu.cu\n"%(SCAN_PATH))
-            makefile.write("objects/executors/scan_main.co:../../src/ee/executors/scan_main.cpp ../../src/ee/executors/scan_common.h\n")
+            makefile.write("objects/executors/scan_main.co:../../src/ee/executors/scan_main.cpp ../../src/ee/executors/GPUTUPLE.h ../../src/ee/executors/GPUNIJ.h\n")
+
             makefile.write("\tg++ $(INCLUDE) $(GPUFLAGS) -fPIC -o objects/executors/scan_main.co -c %sscan_main.cpp\n"%(SCAN_PATH))
-            makefile.write("objects/executors/GPUNIJ.co:../../src/ee/executors/GPUNIJ.cpp objects/executors/join_gpu.cubin ../../src/ee/executors/GPUNIJ.h ../../src/ee/executors/scan_common.h\n")
+            makefile.write("objects/executors/GPUNIJ.co:../../src/ee/executors/GPUNIJ.cpp objects/executors/join_gpu.cubin ../../src/ee/executors/GPUNIJ.h ../../src/ee/executors/GPUTUPLE.h\n")
             makefile.write("\tg++ $(INCLUDE) $(GPUFLAGS) -fPIC -o objects/executors/GPUNIJ.co -c %sGPUNIJ.cpp\n"%(SCAN_PATH))
-            #makefile.write("\tg++ --shared objects/executors/scan_main.co objects/executors/scan.co -o $@\n")
-            makefile.write(jni_objname + ": " + filename + " " + " ".join(mydeps) + "\n")
+
+            makefile.write(jni_objname + ": " + filename + " " + " ".join(mydeps) + " ../../src/ee/executors/GPUNIJ.h ../../src/ee/executors/GPUTUPLE.h" + "\n")
             makefile.write("\t$(CCACHE) $(COMPILE.cpp) $(GPUFLAGS) $(INCLUDE) %s -o $@ %s\n" % (CTX.EXTRAFLAGS, filename))
-            #makefile.write("static_objects/executors/scan_main.co:../../src/ee/executors/scan_main.cpp ../../src/ee/executors/scan_common.h\n")
-            #makefile.write("\tg++ $(INCLUDE) $(GPUFLAGS) -fPIC -o static_objects/executors/scan_main.co -c %sscan_main.cpp\n"%(SCAN_PATH))
-            makefile.write(static_objname + ": " + filename + " " + " ".join(mydeps) + "\n")
+            makefile.write(static_objname + ": " + filename + " " + " ".join(mydeps) + " ../../src/ee/executors/GPUNIJ.h ../../src/ee/executors/GPUTUPLE.h" + "\n")
             makefile.write("\t$(CCACHE) $(COMPILE.cpp) $(GPUFLAGS) $(INCLUDE) %s -o $@ %s\n" % (CTX.EXTRAFLAGS, filename))
             makefile.write("\n")
 #add part end
