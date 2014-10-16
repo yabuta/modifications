@@ -181,7 +181,7 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
     }
 
 
-    /*
+
     TUPLE *lt,*rt;
     JOIN_TUPLE *jt = NULL;
 
@@ -206,6 +206,7 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
       i++;
     }
 
+    /*
     printf("left table values:\n");
     for(i=0 ; i<leftSize; i++){
       printf("id:%d\tval:%d\n",i,lt[i].val);
@@ -214,7 +215,7 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
     for(i=0 ; i<rightSize; i++){
       printf("id:%d\tval:%d\n",i,rt[i].val);
     }
-
+    */
 
     GPUNIJ *gn = new GPUNIJ();
 
@@ -226,9 +227,11 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
 
     printf("jt_size = %d\n",jt_size);
 
+    /*
     for(int j=0; j<jt_size ; j++){
       printf("%d\t%d\n",jt[j].lval,jt[j].rval);
     }
+    */
 
     for(int i=0; i<jt_size ; i++){
       temp = outer_tuple.address();
@@ -259,8 +262,8 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
     free(rt);
     delete gn;
     //free(jt);
-*/
 
+    /*
     bool earlyReturned = false;
     while ((limit == -1 || tuple_ctr < limit) && iterator0.next(outer_tuple)){
         pmp.countdownProgress();
@@ -341,6 +344,7 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
 
     } // END OUTER WHILE LOOP
 
+    */
     if (m_aggExec != NULL) {
         m_aggExec->p_execute_finish();
     }
