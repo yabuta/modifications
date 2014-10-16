@@ -14,10 +14,9 @@
 #include "scan_common.h"
 
 
-JOIN_TUPLE *jt;
-
 //main引数を受け取るグローバル変数
 
+/*
 CUresult res;
 CUdevice dev;
 CUcontext ctx;
@@ -26,55 +25,18 @@ CUmodule module,c_module;
 CUdeviceptr lt_dev, rt_dev, jt_dev,count_dev, pre_dev;
 CUdeviceptr ltn_dev, rtn_dev;
 unsigned int block_x, block_y, grid_x, grid_y;
-
-void
-GPUNIJ::printDiff(struct timeval begin, struct timeval end)
-{
-  long diff;
-  
-  diff = (end.tv_sec - begin.tv_sec) * 1000 * 1000 + (end.tv_usec - begin.tv_usec);
-  printf("Diff: %ld us (%ld ms)\n", diff, diff/1000);
-}
-
-uint GPUNIJ::iDivUp(uint dividend, uint divisor)
-{
-  return ((dividend % divisor) == 0) ? (dividend / divisor) : (dividend / divisor + 1);
-}
-
-//初期化する
-/*
-void
-GPUNIJ::init(void)
-{
-  
-  CUresult res;
-
-  res = cuMemHostAlloc((void**)&jt,JT_SIZE * sizeof(JOIN_TUPLE),CU_MEMHOSTALLOC_DEVICEMAP);
-  if (res != CUDA_SUCCESS) {
-    printf("cuMemHostAlloc to LEFT_TUPLE failed: res = %lu\n", (unsigned long)res);
-    exit(1);
-  }
-     
-}
 */
 
-//HrightとHleftをそれぞれ比較する。GPUで並列化するforループもここにあるもので行う。
-int GPUNIJ::join(JOIN_TUPLE *resjt)
-{
 
-  int i, j, idx;
-  //int *count;//maybe long long int is better
-  uint jt_size,gpu_size;
-  uint total = 0;
+GPUNIJ::GPUNIJ(){
+
+  jt = NULL;
+  PART = 524288;
+
+
   char fname[256];
   const char *path="/home/yabuta/voltdb/voltdb";
-  long join_time=0,count_time=0,scan_time=0,send_time=0,down_time=0;
-  struct timeval time_join_s,time_join_f,time_download_s,time_download_f;
-  struct timeval time_count_s,time_count_f;
-  struct timeval time_scan_s,time_scan_f;
-  struct timeval time_send_s,time_send_f;
-  struct timeval begin,end;
-
+  
   /******************** GPU init here ************************************************/
   //GPU仕様のために
 
@@ -119,12 +81,83 @@ int GPUNIJ::join(JOIN_TUPLE *resjt)
     printf("cuModuleGetFunction() failed\n");
     exit(1);
   }
+
+
+
+}
+
+
+GPUNIJ::~GPUNIJ(){
+
+  free(jt);
+
+  //finish GPU   ****************************************************
+
+  res = cuModuleUnload(module);
+  if (res != CUDA_SUCCESS) {
+    printf("cuModuleUnload module failed: res = %lu\n", (unsigned long)res);
+    exit(1);
+  }  
+  res = cuCtxDestroy(ctx);
+  if (res != CUDA_SUCCESS) {
+    printf("cuCtxDestroy failed: res = %lu\n", (unsigned long)res);
+    exit(1);
+  }
+}
+
+
+void
+GPUNIJ::printDiff(struct timeval begin, struct timeval end)
+{
+  long diff;
   
-  //タプルを初期化する
-  //init();
-  //resjt = (JOIN_TUPLE *)malloc(JT_SIZE*sizeof(JOIN_TUPLE));
+  diff = (end.tv_sec - begin.tv_sec) * 1000 * 1000 + (end.tv_usec - begin.tv_usec);
+  printf("Diff: %ld us (%ld ms)\n", diff, diff/1000);
+}
 
+uint GPUNIJ::iDivUp(uint dividend, uint divisor)
+{
+  return ((dividend % divisor) == 0) ? (dividend / divisor) : (dividend / divisor + 1);
+}
 
+//初期化する
+/*
+void
+GPUNIJ::init(void)
+{
+  
+  CUresult res;
+
+  res = cuMemHostAlloc((void**)&jt,JT_SIZE * sizeof(JOIN_TUPLE),CU_MEMHOSTALLOC_DEVICEMAP);
+  if (res != CUDA_SUCCESS) {
+    printf("cuMemHostAlloc to LEFT_TUPLE failed: res = %lu\n", (unsigned long)res);
+    exit(1);
+  }
+     
+}
+*/
+
+//HrightとHleftをそれぞれ比較する。GPUで並列化するforループもここにあるもので行う。
+int GPUNIJ::join()
+{
+
+  int i, j, idx;
+  //int *count;//maybe long long int is better
+  uint jt_size,gpu_size;
+  uint total = 0;
+  CUdeviceptr lt_dev, rt_dev, jt_dev,count_dev, pre_dev;
+  CUdeviceptr ltn_dev, rtn_dev;
+  unsigned int block_x, block_y, grid_x, grid_y;
+
+  long join_time=0,count_time=0,scan_time=0,send_time=0,down_time=0;
+  struct timeval time_join_s,time_join_f,time_download_s,time_download_f;
+  struct timeval time_count_s,time_count_f;
+  struct timeval time_scan_s,time_scan_f;
+  struct timeval time_send_s,time_send_f;
+  struct timeval begin,end;
+
+  
+  /*
   for(int i=0; i<left ; i++){
     printf("lt[%d] = %d\n",i,lt[i].val);
 
@@ -134,6 +167,7 @@ int GPUNIJ::join(JOIN_TUPLE *resjt)
     printf("rt[%d] = %d\n",i,rt[i].val);
 
   }
+  */
 
   /*全体の実行時間計測*/
   gettimeofday(&begin, NULL);
@@ -151,10 +185,9 @@ int GPUNIJ::join(JOIN_TUPLE *resjt)
     grid_y++;
 
   block_y = 1;
-  printf("grid_x = %d\tgrid_y = %d\tblock_x = %d\tblock_y = %d\n",grid_x,grid_y,block_x,block_y);
-
+  //printf("grid_x = %d\tgrid_y = %d\tblock_x = %d\tblock_y = %d\n",grid_x,grid_y,block_x,block_y);
   gpu_size = grid_x * grid_y * block_x * block_y;
-  printf("gpu_size = %d\n",gpu_size);
+  //printf("gpu_size = %d\n",gpu_size);
   if(gpu_size>MAX_LARGE_ARRAY_SIZE){
     gpu_size = MAX_LARGE_ARRAY_SIZE * iDivUp(gpu_size,MAX_LARGE_ARRAY_SIZE);
   }else if(gpu_size > MAX_SHORT_ARRAY_SIZE){
@@ -406,7 +439,8 @@ int GPUNIJ::join(JOIN_TUPLE *resjt)
 
   gettimeofday(&end, NULL);
 
-  
+
+  /*  
   printf("\n\n");
   printf("******************execution time********************************************\n\n");
 
@@ -430,34 +464,19 @@ int GPUNIJ::join(JOIN_TUPLE *resjt)
 
 
   printf("the number of total match tuple = %d\n",total);
+  */
 
+  /*
   for(i=0;i<3&&i<JT_SIZE;i++){
     printf("[%d]:left %8d \t:right: %8d\n",i,jt[i].lkey,jt[i].rkey);
     printf("join[%d]:left = %8d\tright = %8d\n",j,jt[i].lval,jt[i].rval);
-    /*
-    for(j = 0;j<VAL_NUM;j++){
-      printf("join[%d]:left = %8d\tright = %8d\n",j,jt[i].lval[j],jt[i].rval[j]);
-    }
-    */
     printf("\n");
 
   }
-  //finish GPU   ****************************************************
-
-  res = cuModuleUnload(module);
-  if (res != CUDA_SUCCESS) {
-    printf("cuModuleUnload module failed: res = %lu\n", (unsigned long)res);
-    exit(1);
-  }  
-  res = cuCtxDestroy(ctx);
-  if (res != CUDA_SUCCESS) {
-    printf("cuCtxDestroy failed: res = %lu\n", (unsigned long)res);
-    exit(1);
-  }
+  */
 
   /****************************************************************************/
 
-  resjt = jt;
   return total;
 
 }

@@ -47,8 +47,8 @@
 #include <stack>
 #include <cuda.h>
 #include <cuda_runtime.h>
-//#include "scan_common.h"
 #include "GPUNIJ.h"
+#include "GPUTUPLE.h"
 #include "nestloopexecutor.h"
 #include "common/debuglog.h"
 #include "common/common.h"
@@ -71,6 +71,7 @@
 #include <sys/times.h>
 #include <unistd.h>
 #endif
+
 
 using namespace std;
 using namespace voltdb;
@@ -105,35 +106,6 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
     VOLT_DEBUG("executing NestLoop...");
 
     std::cout << "GPU init\n";
-
-    /*
-    int N = 4 * 1024;
-    */
-    /*
-    CUresult res;
-    CUdevice dev;
-    CUcontext ctx;
-    CUdeviceptr count_dev;
-    int count[N];
-    */
-
-    /*
-    TUPLE temp[N],temp2[N];
-    for(int i=0 ; i<N ; i++){
-      temp[i].key = i;
-      temp[i].val[0] = i;
-    }
-    for(int i=0 ; i<10 ; i++){
-      temp2[i].key = i;
-      temp2[i].val[0] = i;
-    }
-    for(int i=10 ; i<N ; i++){
-      temp2[i].key = i;
-      temp2[i].val[0] = i+N;
-    }
-
-
-    */
 
     NestLoopPlanNode* node = dynamic_cast<NestLoopPlanNode*>(m_abstractNode);
     assert(node);
@@ -213,16 +185,17 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
 
 
     TUPLE *lt,*rt;
-    JOIN_TUPLE *jt;
+    JOIN_TUPLE *jt = NULL;
+
     int i=0;
     char *temp;
-    int leftSize,rightSize,jt_size;
+    int leftSize=0,rightSize=0,jt_size=0;
     leftSize = (int)outer_table->activeTupleCount();
     rightSize = (int)inner_table->activeTupleCount();
     printf("leftsize:%d\trightsize:%d\n",leftSize,rightSize);
     lt = (TUPLE *)malloc(leftSize*sizeof(TUPLE));
     rt = (TUPLE *)malloc(rightSize*sizeof(TUPLE));
-    jt = (JOIN_TUPLE *)malloc(JT_SIZE*sizeof(JOIN_TUPLE));
+    //jt = (JOIN_TUPLE *)malloc(JT_SIZE*sizeof(JOIN_TUPLE));
 
     while(iterator0.next(outer_tuple)){
       temp = outer_tuple.address();
@@ -239,16 +212,15 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
     printf("left table values:\n");
     for(i=0 ; i<leftSize; i++){
       printf("id:%d\tval:%d\n",i,lt[i].val);
-
     }
     printf("right table values:\n");
     for(i=0 ; i<rightSize; i++){
       printf("id:%d\tval:%d\n",i,rt[i].val);
     }
 
-    GPUNIJ gn = new GPUNIJ(lt,rt,leftSize,rightSize);
+    GPUNIJ gn(lt,rt,leftSize,rightSize);
 
-    jt_size = gn.join(lt,rt,jt,leftSize,rightSize);
+    jt_size = gn.join(jt);
 
     printf("jt_size = %d\n",jt_size);
 
@@ -274,11 +246,11 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
       }
     }
 
-    gn.~GPUNIJ();
+    //gn.~GPUNIJ();
 
     free(lt);
     free(rt);
-    free(jt);
+    //free(jt);
 
 
     /*

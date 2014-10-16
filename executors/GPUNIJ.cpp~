@@ -9,11 +9,10 @@
 #include <cuda_runtime.h>
 #include <helper_cuda.h>
 #include <helper_functions.h>
+#include "GPUTUPLE.h"
 #include "GPUNIJ.h"
-//#include "scan_common.h"
+#include "scan_common.h"
 
-
-JOIN_TUPLE *jt;
 
 //main引数を受け取るグローバル変数
 
@@ -35,7 +34,7 @@ GPUNIJ::printDiff(struct timeval begin, struct timeval end)
   printf("Diff: %ld us (%ld ms)\n", diff, diff/1000);
 }
 
-static uint GPUNIJ::iDivUp(uint dividend, uint divisor)
+uint GPUNIJ::iDivUp(uint dividend, uint divisor)
 {
   return ((dividend % divisor) == 0) ? (dividend / divisor) : (dividend / divisor + 1);
 }
@@ -58,7 +57,7 @@ GPUNIJ::init(void)
 */
 
 //HrightとHleftをそれぞれ比較する。GPUで並列化するforループもここにあるもので行う。
-int GPUNIJ::join(JOIN_TUPLE *resjt)
+int GPUNIJ::join()
 {
 
   int i, j, idx;
@@ -119,10 +118,6 @@ int GPUNIJ::join(JOIN_TUPLE *resjt)
     exit(1);
   }
   
-  //タプルを初期化する
-  //init();
-  //resjt = (JOIN_TUPLE *)malloc(JT_SIZE*sizeof(JOIN_TUPLE));
-
 
   for(int i=0; i<left ; i++){
     printf("lt[%d] = %d\n",i,lt[i].val);
@@ -456,7 +451,6 @@ int GPUNIJ::join(JOIN_TUPLE *resjt)
 
   /****************************************************************************/
 
-  resjt = res;
   return total;
 
 }

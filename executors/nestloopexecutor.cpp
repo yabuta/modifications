@@ -150,10 +150,8 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
 
 
     // Join type
-    /*
     JoinType join_type = node->getJoinType();
     assert(join_type == JOIN_TYPE_INNER || join_type == JOIN_TYPE_LEFT);
-    */
     LimitPlanNode* limit_node = dynamic_cast<LimitPlanNode*>(node->getInlinePlanNode(PLAN_NODE_TYPE_LIMIT));
     int limit = -1;
     int offset = -1;
@@ -165,12 +163,12 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
     int inner_cols = inner_table->columnCount();
     TableTuple outer_tuple(node->getInputTable(0)->schema());
     TableTuple inner_tuple(node->getInputTable(1)->schema());
-    //const TableTuple& null_tuple = m_null_tuple.tuple();
+    const TableTuple& null_tuple = m_null_tuple.tuple();
 
     TableIterator iterator0 = outer_table->iteratorDeletingAsWeGo();
     TableIterator iterator1 = inner_table->iterator();
-    //int tuple_ctr = 0;
-    //int tuple_skipped = 0;
+    int tuple_ctr = 0;
+    int tuple_skipped = 0;
     ProgressMonitorProxy pmp(m_engine, this, inner_table);
 
     TableTuple join_tuple;
@@ -183,7 +181,7 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
     }
 
 
-
+    /*
     TUPLE *lt,*rt;
     JOIN_TUPLE *jt = NULL;
 
@@ -195,7 +193,6 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
     printf("leftsize:%d\trightsize:%d\n",leftSize,rightSize);
     lt = (TUPLE *)malloc(leftSize*sizeof(TUPLE));
     rt = (TUPLE *)malloc(rightSize*sizeof(TUPLE));
-    //jt = (JOIN_TUPLE *)malloc(JT_SIZE*sizeof(JOIN_TUPLE));
 
     while(iterator0.next(outer_tuple)){
       temp = outer_tuple.address();
@@ -218,12 +215,20 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
       printf("id:%d\tval:%d\n",i,rt[i].val);
     }
 
-    GPUNIJ gn(lt,rt,leftSize,rightSize);
 
-    jt_size = gn.join(jt);
+    GPUNIJ *gn = new GPUNIJ();
+
+    gn->setData(lt,rt,leftSize,rightSize);
+
+    jt_size = gn->join();
+
+    jt = gn->getResult();
 
     printf("jt_size = %d\n",jt_size);
 
+    for(int j=0; j<jt_size ; j++){
+      printf("%d\t%d\n",jt[j].lval,jt[j].rval);
+    }
 
     for(int i=0; i<jt_size ; i++){
       temp = outer_tuple.address();
@@ -234,6 +239,7 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
       join_tuple.setNValues(0, outer_tuple, 0, outer_cols);
       join_tuple.setNValues(outer_cols, inner_tuple, 0, inner_cols);
       //m_tmpOutputTable->insertTempTuple(join_tuple);
+
       if (m_aggExec != NULL) {
         if (m_aggExec->p_execute_tuple(join_tuple)) {
           // Get enough rows for LIMIT
@@ -244,16 +250,17 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
         m_tmpOutputTable->insertTempTuple(join_tuple);
         //pmp.countdownProgress();
       }
+
     }
 
     //gn.~GPUNIJ();
 
     free(lt);
     free(rt);
+    delete gn;
     //free(jt);
+*/
 
-
-    /*
     bool earlyReturned = false;
     while ((limit == -1 || tuple_ctr < limit) && iterator0.next(outer_tuple)){
         pmp.countdownProgress();
@@ -333,7 +340,7 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
         }
 
     } // END OUTER WHILE LOOP
-    */
+
     if (m_aggExec != NULL) {
         m_aggExec->p_execute_finish();
     }

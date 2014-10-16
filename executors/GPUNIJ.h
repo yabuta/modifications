@@ -24,7 +24,12 @@ public:
 
     int left,right;
 
-    GPUNIJ(TUPLE *tlt,TUPLE *trt,int leftSize,int rightSize){
+    GPUNIJ();
+    ~GPUNIJ();
+    
+    int join();
+
+    void setData(TUPLE *tlt,TUPLE *trt,int leftSize,int rightSize){
         
         lt = tlt;
         rt = trt;
@@ -33,35 +38,34 @@ public:
         left = leftSize;
         right = rightSize;
 
+        if(leftSize<524288&&rightSize<524288){
+            PART = leftSize;
+        }
+
     }
 
-    ~GPUNIJ(){
-        free(jt);
+    JOIN_TUPLE *getResult(){
+        return jt;
     }
-    
-    int join(JOIN_TUPLE *jt);
+
 
 private:
 
 //for partition execution
-#define PART 4096    
    
 //1blockでのスレッド数の定義。
 #define BLOCK_SIZE_X 256  //outer ,left
 #define BLOCK_SIZE_Y 512  //inner ,right
 
 #define SELECTIVITY 1000000000
-    
 
+    int PART;
 
     CUresult res;
     CUdevice dev;
     CUcontext ctx;
     CUfunction function,c_function;
     CUmodule module,c_module;
-    CUdeviceptr lt_dev, rt_dev, jt_dev,count_dev, pre_dev;
-    CUdeviceptr ltn_dev, rtn_dev;
-    unsigned int block_x, block_y, grid_x, grid_y;
     
     void printDiff(struct timeval begin, struct timeval end);
 
