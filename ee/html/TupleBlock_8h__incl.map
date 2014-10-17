@@ -1,0 +1,17 @@
+<map id="G" name="G">
+<area shape="rect" id="node27" href="$ThreadLocalPool_8h.html" title="common/ThreadLocalPool.h" alt="" coords="2893,315,3098,344"/>
+<area shape="rect" id="node44" href="$tabletuple_8h.html" title="common/tabletuple.h" alt="" coords="1191,83,1357,112"/>
+<area shape="rect" id="node29" href="$CompactingStringStorage_8h.html" title="CompactingStringStorage.h" alt="" coords="2893,392,3098,421"/>
+<area shape="rect" id="node31" href="$CompactingStringPool_8h.html" title="CompactingStringPool.h" alt="" coords="2874,469,3055,499"/>
+<area shape="rect" id="node33" href="$CompactingPool_8h.html" title="structures/CompactingPool.h" alt="" coords="2855,547,3074,576"/>
+<area shape="rect" id="node46" href="$common_8h.html" title="common/common.h" alt="" coords="978,160,1133,189"/>
+<area shape="rect" id="node87" href="$ExportSerializeIo_8h.html" title="common/ExportSerializeIo.h" alt="" coords="2407,315,2615,344"/>
+<area shape="rect" id="node95" href="$FatalException_8hpp.html" title="common/FatalException.hpp" alt="" coords="759,392,973,421"/>
+<area shape="rect" id="node107" href="$Pool_8hpp.html" title="common/Pool.hpp" alt="" coords="333,315,471,344"/>
+<area shape="rect" id="node122" href="$TupleSchema_8h.html" title="common/TupleSchema.h" alt="" coords="758,237,942,267"/>
+<area shape="rect" id="node133" href="$ValuePeeker_8hpp.html" title="common/ValuePeeker.hpp" alt="" coords="1397,160,1591,189"/>
+<area shape="rect" id="node48" href="$types_8h.html" title="common/types.h" alt="" coords="989,315,1122,344"/>
+<area shape="rect" id="node53" href="$ids_8h.html" title="common/ids.h" alt="" coords="546,315,661,344"/>
+<area shape="rect" id="node57" href="$debuglog_8h.html" title="common/debuglog.h" alt="" coords="479,469,634,499"/>
+<area shape="rect" id="node64" href="$NValue_8hpp.html" title="common/NValue.hpp" alt="" coords="1582,237,1739,267"/>
+</map>

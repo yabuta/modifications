@@ -40,6 +40,10 @@ CTX = BuildContext(sys.argv)
 # these are the base compile options that get added to every compile step
 # this does not include header/lib search paths or specific flags for
 #  specific targets
+#CTX.CPPFLAGS += """
+#            -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -DNOCLOCK
+#            -DBOOST_SP_DISABLE_THREADS -DBOOST_DISABLE_THREADS -DBOOST_ALL_NO_LIB"""#changed
+
 CTX.CPPFLAGS += """-Wall -Wextra -Werror -Woverloaded-virtual
             -Wpointer-arith -Wcast-qual -Wwrite-strings
             -Winit-self -Wno-sign-compare -Wno-unused-parameter
@@ -50,14 +54,15 @@ CTX.CPPFLAGS += """-Wall -Wextra -Werror -Woverloaded-virtual
 
 # clang doesn't seem to want this
 if compiler_name == 'gcc':
-    CTX.CPPFLAGS += " -pthread"
+#    CTX.CPPFLAGS += " -pthread"#changed
     CTX.LDFLAGS += " -rdynamic"
 
 if (compiler_name == 'clang') and (compiler_major == 3 and compiler_minor >= 4):
     CTX.CPPFLAGS += " -Wno-varargs"
 
 if (compiler_name != 'gcc') or (compiler_major == 4 and compiler_minor >= 3):
-    CTX.CPPFLAGS += " -Wno-ignored-qualifiers -fno-strict-aliasing"
+    CTX.CPPFLAGS += ""
+    CTX.CPPFLAGS += " -Wno-ignored-qualifiers -fno-strict-aliasing"#change
 
 if CTX.PROFILE:
     CTX.CPPFLAGS += " -fvisibility=default -DPROFILE_ENABLED"
@@ -156,6 +161,199 @@ if CTX.PLATFORM == "Linux":
 CTX.INPUT[''] = """
  voltdbjni.cpp
 """
+
+#CTX.INPUT['catalog'] = 
+"""
+ authprogram.cu
+ catalog.cu
+ cataloginteger.cu
+ catalogtype.cu
+ cluster.cu
+ column.cu
+ columnref.cu
+ connector.cu
+ connectortableinfo.cu
+ connectorproperty.cu
+ constraint.cu
+ constraintref.cu
+ database.cu
+ deployment.cu
+ group.cu
+ groupref.cu
+ index.cu
+ materializedviewinfo.cu
+ planfragment.cu
+ procedure.cu
+ procparameter.cu
+ program.cu
+ statement.cu
+ stmtparameter.cu
+ systemsettings.cu
+ table.cu
+ user.cu
+ userref.cu
+ snapshotschedule.cu
+ commandlog.cu
+"""
+
+#CTX.INPUT['structures'] = 
+"""
+ CompactingPool.cu
+ ContiguousAllocator.cu
+"""
+
+#CTX.INPUT['common'] = 
+"""
+ CompactingStringPool.cu
+ CompactingStringStorage.cu
+ FatalException.cu
+ ThreadLocalPool.cu
+ SegvException.cu
+ SerializableEEException.cu
+ SQLException.cu
+ InterruptException.cu
+ StringRef.cu
+ tabletuple.cu
+ TupleSchema.cu
+ types.cu
+ UndoLog.cu
+ NValue.cu
+ RecoveryProtoMessage.cu
+ RecoveryProtoMessageBuilder.cu
+ DefaultTupleSerializer.cu
+ executorcontext.cu
+ serializeio.cu
+ StreamPredicateList.cu
+ Topend.cu
+ TupleOutputStream.cu
+ TupleOutputStreamProcessor.cu
+ MiscUtil.cu
+"""
+
+#CTX.INPUT['execution'] = 
+"""
+ FragmentManager.cu
+ JNITopend.cu
+ VoltDBEngine.cu
+"""
+
+#CTX.INPUT['executors'] = 
+"""
+ abstractexecutor.cu
+ aggregateexecutor.cu
+ deleteexecutor.cu
+ distinctexecutor.cu
+ executorutil.cu
+ indexscanexecutor.cu
+ indexcountexecutor.cu
+ tablecountexecutor.cu
+ insertexecutor.cu
+ limitexecutor.cu
+ materializeexecutor.cu
+ materializedscanexecutor.cu
+ nestloopexecutor.cu
+ nestloopindexexecutor.cu
+ orderbyexecutor.cu
+ projectionexecutor.cu
+ receiveexecutor.cu
+ sendexecutor.cu
+ seqscanexecutor.cu
+ unionexecutor.cu
+ updateexecutor.cu
+"""
+
+#CTX.INPUT['expressions'] = 
+"""
+ abstractexpression.cu
+ expressionutil.cu
+ vectorexpression.cu
+ functionexpression.cu
+ tupleaddressexpression.cu
+ parametervalueexpression.cu
+"""
+
+#CTX.INPUT['plannodes'] = 
+"""
+ abstractjoinnode.cu
+ abstractoperationnode.cu
+ abstractplannode.cu
+ abstractscannode.cu
+ aggregatenode.cu
+ deletenode.cu
+ distinctnode.cu
+ indexscannode.cu
+ indexcountnode.cu
+ tablecountnode.cu
+ insertnode.cu
+ limitnode.cu
+ materializenode.cu
+ materializedscanplannode.cu
+ nestloopindexnode.cu
+ nestloopnode.cu
+ orderbynode.cu
+ plannodefragment.cu
+ plannodeutil.cu
+ projectionnode.cu
+ receivenode.cu
+ SchemaColumn.cu
+ sendnode.cu
+ seqscannode.cu
+ unionnode.cu
+ updatenode.cu
+"""
+
+#CTX.INPUT['indexes'] = 
+"""
+ tableindex.cu
+ tableindexfactory.cu
+ IndexStats.cu
+"""
+
+#CTX.INPUT['storage'] = 
+"""
+ constraintutil.cu
+ CopyOnWriteContext.cu
+ ElasticContext.cu
+ CopyOnWriteIterator.cu
+ ConstraintFailureException.cu
+ TableStreamer.cu
+ ElasticScanner.cu
+ MaterializedViewMetadata.cu
+ persistenttable.cu
+ PersistentTableStats.cu
+ StreamedTableStats.cu
+ streamedtable.cu
+ table.cu
+ TableCatalogDelegate.cu
+ tablefactory.cu
+ TableStats.cu
+ tableutil.cu
+ temptable.cu
+ TempTableLimits.cu
+ TupleStreamBase.cu
+ ExportTupleStream.cu
+ DRTupleStream.cu
+ BinaryLogSink.cu
+ RecoveryContext.cu
+ TupleBlock.cu
+ TableStreamerContext.cu
+ ElasticIndex.cu
+ ElasticIndexReadContext.cu
+"""
+
+#CTX.INPUT['stats'] = 
+"""
+ StatsAgent.cu
+ StatsSource.cu
+"""
+
+#CTX.INPUT['logging'] = 
+"""
+ JNILogProxy.cu
+ LogManager.cu
+"""
+
+
 
 CTX.INPUT['catalog'] = """
  authprogram.cpp

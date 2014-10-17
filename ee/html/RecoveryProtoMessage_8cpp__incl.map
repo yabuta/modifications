@@ -1,0 +1,22 @@
+<map id="G" name="G">
+<area shape="rect" id="node3" href="$RecoveryProtoMessage_8h.html" title="common/RecoveryProtoMessage.h" alt="" coords="3140,83,3396,112"/>
+<area shape="rect" id="node9" href="$types_8h.html" title="common/types.h" alt="" coords="851,469,984,499"/>
+<area shape="rect" id="node62" href="$FatalException_8hpp.html" title="common/FatalException.hpp" alt="" coords="3901,469,4115,499"/>
+<area shape="rect" id="node74" href="$Pool_8hpp.html" title="common/Pool.hpp" alt="" coords="3536,392,3675,421"/>
+<area shape="rect" id="node5" href="$tabletuple_8h.html" title="common/tabletuple.h" alt="" coords="3185,160,3351,189"/>
+<area shape="rect" id="node147" href="$declarations_8h.html" title="common/declarations.h" alt="" coords="496,315,675,344"/>
+<area shape="rect" id="node7" href="$common_8h.html" title="common/common.h" alt="" coords="2576,237,2731,267"/>
+<area shape="rect" id="node54" href="$ExportSerializeIo_8h.html" title="common/ExportSerializeIo.h" alt="" coords="2741,392,2949,421"/>
+<area shape="rect" id="node126" href="$TupleSchema_8h.html" title="common/TupleSchema.h" alt="" coords="3176,392,3360,421"/>
+<area shape="rect" id="node137" href="$ValuePeeker_8hpp.html" title="common/ValuePeeker.hpp" alt="" coords="2061,237,2256,267"/>
+<area shape="rect" id="node15" href="$ids_8h.html" title="common/ids.h" alt="" coords="2405,469,2520,499"/>
+<area shape="rect" id="node19" href="$debuglog_8h.html" title="common/debuglog.h" alt="" coords="3663,547,3817,576"/>
+<area shape="rect" id="node26" href="$NValue_8hpp.html" title="common/NValue.hpp" alt="" coords="1873,315,2031,344"/>
+<area shape="rect" id="node88" href="$SQLException_8h.html" title="common/SQLException.h" alt="" coords="587,469,776,499"/>
+<area shape="rect" id="node93" href="$StringRef_8h.html" title="common/StringRef.h" alt="" coords="5,392,163,421"/>
+<area shape="rect" id="node97" href="$ThreadLocalPool_8h.html" title="common/ThreadLocalPool.h" alt="" coords="200,392,405,421"/>
+<area shape="rect" id="node107" href="$serializeio_8h.html" title="common/serializeio.h" alt="" coords="1963,392,2125,421"/>
+<area shape="rect" id="node120" href="$value__defs_8h.html" title="common/value_defs.h" alt="" coords="2149,392,2317,421"/>
+<area shape="rect" id="node90" href="$SerializableEEException_8h.html" title="common/SerializableEEException.h" alt="" coords="520,547,776,576"/>
+<area shape="rect" id="node99" href="$CompactingStringStorage_8h.html" title="CompactingStringStorage.h" alt="" coords="184,469,389,499"/>
+</map>

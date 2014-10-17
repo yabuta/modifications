@@ -1,0 +1,32 @@
+<map id="G" name="G">
+<area shape="rect" id="node1" href="$classcatalog_1_1CatalogType.html" title="catalog::CatalogType" alt="" coords="5,752,171,781"/>
+<area shape="rect" id="node3" href="$classcatalog_1_1AuthProgram.html" title="catalog::AuthProgram" alt="" coords="245,5,416,35"/>
+<area shape="rect" id="node5" href="$classcatalog_1_1Catalog.html" title="catalog::Catalog" alt="" coords="264,59,397,88"/>
+<area shape="rect" id="node7" href="$classcatalog_1_1CatalogInteger.html" title="catalog::CatalogInteger" alt="" coords="239,112,423,141"/>
+<area shape="rect" id="node9" href="$classcatalog_1_1Cluster.html" title="catalog::Cluster" alt="" coords="265,165,396,195"/>
+<area shape="rect" id="node11" href="$classcatalog_1_1Column.html" title="catalog::Column" alt="" coords="265,219,396,248"/>
+<area shape="rect" id="node13" href="$classcatalog_1_1ColumnRef.html" title="catalog::ColumnRef" alt="" coords="253,272,408,301"/>
+<area shape="rect" id="node15" href="$classcatalog_1_1CommandLog.html" title="catalog::CommandLog" alt="" coords="244,325,417,355"/>
+<area shape="rect" id="node17" href="$classcatalog_1_1Connector.html" title="catalog::Connector" alt="" coords="255,379,407,408"/>
+<area shape="rect" id="node19" href="$classcatalog_1_1ConnectorProperty.html" title="catalog::ConnectorProperty" alt="" coords="225,432,436,461"/>
+<area shape="rect" id="node21" href="$classcatalog_1_1ConnectorTableInfo.html" title="catalog::ConnectorTableInfo" alt="" coords="225,485,436,515"/>
+<area shape="rect" id="node23" href="$classcatalog_1_1Constraint.html" title="catalog::Constraint" alt="" coords="255,539,407,568"/>
+<area shape="rect" id="node25" href="$classcatalog_1_1ConstraintRef.html" title="catalog::ConstraintRef" alt="" coords="243,592,419,621"/>
+<area shape="rect" id="node27" href="$classcatalog_1_1Database.html" title="catalog::Database" alt="" coords="257,645,404,675"/>
+<area shape="rect" id="node29" href="$classcatalog_1_1Deployment.html" title="catalog::Deployment" alt="" coords="248,699,413,728"/>
+<area shape="rect" id="node31" href="$classcatalog_1_1Group.html" title="catalog::Group" alt="" coords="271,752,391,781"/>
+<area shape="rect" id="node33" href="$classcatalog_1_1GroupRef.html" title="catalog::GroupRef" alt="" coords="259,805,403,835"/>
+<area shape="rect" id="node35" href="$classcatalog_1_1Index.html" title="catalog::Index" alt="" coords="272,859,389,888"/>
+<area shape="rect" id="node37" href="$classcatalog_1_1MaterializedViewInfo.html" title="catalog::MaterializedViewInfo" alt="" coords="220,912,441,941"/>
+<area shape="rect" id="node39" href="$classcatalog_1_1PlanFragment.html" title="catalog::PlanFragment" alt="" coords="244,965,417,995"/>
+<area shape="rect" id="node41" href="$classcatalog_1_1Procedure.html" title="catalog::Procedure" alt="" coords="256,1019,405,1048"/>
+<area shape="rect" id="node43" href="$classcatalog_1_1ProcParameter.html" title="catalog::ProcParameter" alt="" coords="239,1072,423,1101"/>
+<area shape="rect" id="node45" href="$classcatalog_1_1Program.html" title="catalog::Program" alt="" coords="261,1125,400,1155"/>
+<area shape="rect" id="node47" href="$classcatalog_1_1SnapshotSchedule.html" title="catalog::SnapshotSchedule" alt="" coords="228,1179,433,1208"/>
+<area shape="rect" id="node49" href="$classcatalog_1_1Statement.html" title="catalog::Statement" alt="" coords="252,1232,409,1261"/>
+<area shape="rect" id="node51" href="$classcatalog_1_1StmtParameter.html" title="catalog::StmtParameter" alt="" coords="236,1285,425,1315"/>
+<area shape="rect" id="node53" href="$classcatalog_1_1Systemsettings.html" title="catalog::Systemsettings" alt="" coords="236,1339,425,1368"/>
+<area shape="rect" id="node55" href="$classcatalog_1_1Table.html" title="catalog::Table" alt="" coords="273,1392,388,1421"/>
+<area shape="rect" id="node57" href="$classcatalog_1_1User.html" title="catalog::User" alt="" coords="275,1445,387,1475"/>
+<area shape="rect" id="node59" href="$classcatalog_1_1UserRef.html" title="catalog::UserRef" alt="" coords="264,1499,397,1528"/>
+</map>

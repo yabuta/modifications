@@ -1,0 +1,6 @@
+<map id="G" name="G">
+<area shape="rect" id="node3" href="$classvoltdb_1_1CopySerializeOutput.html" title="voltdb::CopySerializeOutput" alt="" coords="5,83,219,112"/>
+<area shape="rect" id="node5" href="$classvoltdb_1_1ReferenceSerializeOutput.html" title="voltdb::ReferenceSerializeOutput" alt="" coords="243,83,493,112"/>
+<area shape="rect" id="node7" href="$classvoltdb_1_1FallbackSerializeOutput.html" title="voltdb::FallbackSerializeOutput" alt="" coords="132,160,361,189"/>
+<area shape="rect" id="node9" href="$classvoltdb_1_1TupleOutputStream.html" title="voltdb::TupleOutputStream" alt="" coords="385,160,591,189"/>
+</map>

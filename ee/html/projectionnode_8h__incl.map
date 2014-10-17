@@ -1,0 +1,12 @@
+<map id="G" name="G">
+<area shape="rect" id="node3" href="$abstractplannode_8h.html" title="plannodes/abstractplannode.h" alt="" coords="528,83,749,112"/>
+<area shape="rect" id="node28" href="$abstractexpression_8h.html" title="expressions/abstractexpression.h" alt="" coords="984,237,1229,267"/>
+<area shape="rect" id="node5" href="$SchemaColumn_8h.html" title="SchemaColumn.h" alt="" coords="761,160,900,189"/>
+<area shape="rect" id="node7" href="$types_8h.html" title="common/types.h" alt="" coords="475,315,608,344"/>
+<area shape="rect" id="node13" href="$PlannerDomValue_8h.html" title="common/PlannerDomValue.h" alt="" coords="788,315,1001,344"/>
+<area shape="rect" id="node39" href="$database_8h.html" title="catalog/database.h" alt="" coords="164,237,313,267"/>
+<area shape="rect" id="node55" href="$ids_8h.html" title="common/ids.h" alt="" coords="336,315,451,344"/>
+<area shape="rect" id="node15" href="$SerializableEEException_8h.html" title="common/SerializableEEException.h" alt="" coords="1061,392,1317,421"/>
+<area shape="rect" id="node42" href="$catalogtype_8h.html" title="catalogtype.h" alt="" coords="141,315,256,344"/>
+<area shape="rect" id="node48" href="$catalogmap_8h.html" title="catalogmap.h" alt="" coords="93,392,205,421"/>
+</map>

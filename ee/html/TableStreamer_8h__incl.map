@@ -1,0 +1,25 @@
+<map id="G" name="G">
+<area shape="rect" id="node13" href="$declarations_8h.html" title="common/declarations.h" alt="" coords="1388,160,1566,189"/>
+<area shape="rect" id="node15" href="$types_8h.html" title="common/types.h" alt="" coords="1524,469,1657,499"/>
+<area shape="rect" id="node20" href="$ids_8h.html" title="common/ids.h" alt="" coords="1985,469,2100,499"/>
+<area shape="rect" id="node25" href="$TupleSerializer_8h.html" title="common/TupleSerializer.h" alt="" coords="1346,237,1536,267"/>
+<area shape="rect" id="node108" href="$TableStreamerInterface_8h.html" title="storage/TableStreamerInterface.h" alt="" coords="2877,83,3128,112"/>
+<area shape="rect" id="node112" href="$TupleBlock_8h.html" title="storage/TupleBlock.h" alt="" coords="2702,237,2862,267"/>
+<area shape="rect" id="node143" href="$TableStreamerContext_8h.html" title="storage/TableStreamerContext.h" alt="" coords="3288,160,3533,189"/>
+<area shape="rect" id="node156" href="$ElasticScanner_8h.html" title="storage/ElasticScanner.h" alt="" coords="2754,160,2941,189"/>
+<area shape="rect" id="node27" href="$TupleSchema_8h.html" title="common/TupleSchema.h" alt="" coords="1754,392,1938,421"/>
+<area shape="rect" id="node50" href="$tabletuple_8h.html" title="common/tabletuple.h" alt="" coords="1570,315,1736,344"/>
+<area shape="rect" id="node82" href="$serializeio_8h.html" title="common/serializeio.h" alt="" coords="826,392,989,421"/>
+<area shape="rect" id="node38" href="$FatalException_8hpp.html" title="common/FatalException.hpp" alt="" coords="2174,469,2388,499"/>
+<area shape="rect" id="node46" href="$debuglog_8h.html" title="common/debuglog.h" alt="" coords="1604,547,1758,576"/>
+<area shape="rect" id="node52" href="$common_8h.html" title="common/common.h" alt="" coords="1576,392,1730,421"/>
+<area shape="rect" id="node58" href="$Pool_8hpp.html" title="common/Pool.hpp" alt="" coords="2952,392,3090,421"/>
+<area shape="rect" id="node66" href="$ValuePeeker_8hpp.html" title="common/ValuePeeker.hpp" alt="" coords="1256,392,1450,421"/>
+<area shape="rect" id="node71" href="$ExportSerializeIo_8h.html" title="common/ExportSerializeIo.h" alt="" coords="988,469,1196,499"/>
+<area shape="rect" id="node100" href="$bytearray_8h.html" title="bytearray.h" alt="" coords="505,469,604,499"/>
+<area shape="rect" id="node105" href="$SQLException_8h.html" title="common/SQLException.h" alt="" coords="190,469,380,499"/>
+<area shape="rect" id="node132" href="$ThreadLocalPool_8h.html" title="common/ThreadLocalPool.h" alt="" coords="3608,315,3813,344"/>
+<area shape="rect" id="node134" href="$CompactingStringStorage_8h.html" title="CompactingStringStorage.h" alt="" coords="3653,392,3858,421"/>
+<area shape="rect" id="node149" href="$StreamPredicateList_8h.html" title="common/StreamPredicateList.h" alt="" coords="3240,392,3477,421"/>
+<area shape="rect" id="node159" href="$TupleIterator_8h.html" title="storage/TupleIterator.h" alt="" coords="1610,237,1786,267"/>
+</map>

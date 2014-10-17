@@ -1,0 +1,16 @@
+<map id="G" name="G">
+<area shape="rect" id="node3" href="$abstractjoinnode_8h.html" title="abstractjoinnode.h" alt="" coords="1008,83,1155,112"/>
+<area shape="rect" id="node30" href="$abstractexpression_8h.html" title="expressions/abstractexpression.h" alt="" coords="976,315,1221,344"/>
+<area shape="rect" id="node68" href="$TupleSchema_8h.html" title="common/TupleSchema.h" alt="" coords="1569,237,1753,267"/>
+<area shape="rect" id="node5" href="$abstractplannode_8h.html" title="abstractplannode.h" alt="" coords="933,160,1085,189"/>
+<area shape="rect" id="node7" href="$SchemaColumn_8h.html" title="SchemaColumn.h" alt="" coords="869,237,1008,267"/>
+<area shape="rect" id="node9" href="$types_8h.html" title="common/types.h" alt="" coords="1139,392,1272,421"/>
+<area shape="rect" id="node15" href="$PlannerDomValue_8h.html" title="common/PlannerDomValue.h" alt="" coords="715,392,928,421"/>
+<area shape="rect" id="node41" href="$database_8h.html" title="catalog/database.h" alt="" coords="171,315,320,344"/>
+<area shape="rect" id="node57" href="$ids_8h.html" title="common/ids.h" alt="" coords="361,392,476,421"/>
+<area shape="rect" id="node17" href="$SerializableEEException_8h.html" title="common/SerializableEEException.h" alt="" coords="965,469,1221,499"/>
+<area shape="rect" id="node44" href="$catalogtype_8h.html" title="catalogtype.h" alt="" coords="141,392,256,421"/>
+<area shape="rect" id="node50" href="$catalogmap_8h.html" title="catalogmap.h" alt="" coords="93,469,205,499"/>
+<area shape="rect" id="node79" href="$FatalException_8hpp.html" title="common/FatalException.hpp" alt="" coords="1797,315,2011,344"/>
+<area shape="rect" id="node90" href="$debuglog_8h.html" title="common/debuglog.h" alt="" coords="1707,392,1861,421"/>
+</map>

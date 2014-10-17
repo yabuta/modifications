@@ -1,0 +1,5 @@
+<map id="G" name="G">
+<area shape="rect" id="node3" href="$classvoltdb_1_1PersistentTable.html" title="voltdb::PersistentTable" alt="" coords="5,83,184,112"/>
+<area shape="rect" id="node5" href="$classvoltdb_1_1StreamedTable.html" title="voltdb::StreamedTable" alt="" coords="208,83,381,112"/>
+<area shape="rect" id="node7" href="$classvoltdb_1_1TempTable.html" title="voltdb::TempTable" alt="" coords="405,83,549,112"/>
+</map>

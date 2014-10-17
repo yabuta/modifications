@@ -1,0 +1,26 @@
+<map id="G" name="G">
+<area shape="rect" id="node3" href="$DefaultTupleSerializer_8h.html" title="common/DefaultTupleSerializer.h" alt="" coords="3099,83,3339,112"/>
+<area shape="rect" id="node9" href="$Pool_8hpp.html" title="common/Pool.hpp" alt="" coords="3520,315,3659,344"/>
+<area shape="rect" id="node39" href="$serializeio_8h.html" title="common/serializeio.h" alt="" coords="1776,237,1939,267"/>
+<area shape="rect" id="node73" href="$ThreadLocalPool_8h.html" title="common/ThreadLocalPool.h" alt="" coords="587,237,792,267"/>
+<area shape="rect" id="node84" href="$UndoLog_8h.html" title="common/UndoLog.h" alt="" coords="3525,160,3677,189"/>
+<area shape="rect" id="node100" href="$valuevector_8h.html" title="common/valuevector.h" alt="" coords="2349,83,2525,112"/>
+<area shape="rect" id="node130" href="$LogManager_8h.html" title="logging/LogManager.h" alt="" coords="4139,237,4304,267"/>
+<area shape="rect" id="node136" href="$LogProxy_8h.html" title="LogProxy.h" alt="" coords="4356,392,4449,421"/>
+<area shape="rect" id="node149" href="$StdoutLogProxy_8h.html" title="logging/StdoutLogProxy.h" alt="" coords="4451,315,4640,344"/>
+<area shape="rect" id="node154" href="$StatsAgent_8h.html" title="stats/StatsAgent.h" alt="" coords="3811,83,3963,112"/>
+<area shape="rect" id="node160" href="$DRTupleStream_8h.html" title="storage/DRTupleStream.h" alt="" coords="2936,160,3131,189"/>
+<area shape="rect" id="node166" href="$BinaryLogSink_8h.html" title="storage/BinaryLogSink.h" alt="" coords="5,83,187,112"/>
+<area shape="rect" id="node5" href="$TupleSerializer_8h.html" title="common/TupleSerializer.h" alt="" coords="2723,160,2912,189"/>
+<area shape="rect" id="node7" href="$tabletuple_8h.html" title="common/tabletuple.h" alt="" coords="2936,237,3101,267"/>
+<area shape="rect" id="node25" href="$FatalException_8hpp.html" title="common/FatalException.hpp" alt="" coords="2611,392,2824,421"/>
+<area shape="rect" id="node32" href="$debuglog_8h.html" title="common/debuglog.h" alt="" coords="1632,469,1787,499"/>
+<area shape="rect" id="node58" href="$bytearray_8h.html" title="bytearray.h" alt="" coords="1765,315,1864,344"/>
+<area shape="rect" id="node64" href="$SQLException_8h.html" title="common/SQLException.h" alt="" coords="2288,315,2477,344"/>
+<area shape="rect" id="node66" href="$types_8h.html" title="common/types.h" alt="" coords="3008,315,3141,344"/>
+<area shape="rect" id="node75" href="$CompactingStringStorage_8h.html" title="CompactingStringStorage.h" alt="" coords="363,315,568,344"/>
+<area shape="rect" id="node93" href="$UndoQuantum_8h.html" title="common/UndoQuantum.h" alt="" coords="3379,237,3571,267"/>
+<area shape="rect" id="node112" href="$NValue_8hpp.html" title="common/NValue.hpp" alt="" coords="2235,160,2392,189"/>
+<area shape="rect" id="node132" href="$Logger_8h.html" title="Logger.h" alt="" coords="4248,315,4325,344"/>
+<area shape="rect" id="node134" href="$LogDefs_8h.html" title="LogDefs.h" alt="" coords="4404,469,4495,499"/>
+</map>

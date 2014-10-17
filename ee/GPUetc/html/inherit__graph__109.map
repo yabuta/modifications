@@ -1,0 +1,7 @@
+<map id="G" name="G">
+<area shape="rect" id="node1" href="$classvoltdb_1_1StatsSource.html" title="voltdb::StatsSource" alt="" coords="5,32,163,61"/>
+<area shape="rect" id="node3" href="$classvoltdb_1_1IndexStats.html" title="voltdb::IndexStats" alt="" coords="212,5,359,35"/>
+<area shape="rect" id="node5" href="$classvoltdb_1_1TableStats.html" title="voltdb::TableStats" alt="" coords="213,59,357,88"/>
+<area shape="rect" id="node7" href="$classvoltdb_1_1PersistentTableStats.html" title="voltdb::PersistentTableStats" alt="" coords="408,32,624,61"/>
+<area shape="rect" id="node9" href="$classvoltdb_1_1StreamedTableStats.html" title="voltdb::StreamedTableStats" alt="" coords="411,85,621,115"/>
+</map>

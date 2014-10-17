@@ -1,0 +1,6 @@
+<map id="G" name="G">
+<area shape="rect" id="node5" href="$classvoltdb_1_1DeletePlanNode.html" title="voltdb::DeletePlanNode" alt="" coords="5,160,189,189"/>
+<area shape="rect" id="node7" href="$classvoltdb_1_1InsertPlanNode.html" title="voltdb::InsertPlanNode" alt="" coords="213,160,389,189"/>
+<area shape="rect" id="node9" href="$classvoltdb_1_1UpdatePlanNode.html" title="voltdb::UpdatePlanNode" alt="" coords="413,160,600,189"/>
+<area shape="rect" id="node2" href="$classvoltdb_1_1AbstractPlanNode.html" title="voltdb::AbstractPlanNode" alt="" coords="204,5,399,35"/>
+</map>
