@@ -12,6 +12,11 @@
 #include "GPUTUPLE.h"
 #include "GPUNIJ.h"
 #include "scan_common.h"
+//#include "expressions/abstractexpression.h"
+//#include "expressions/comparisonexpression.h"
+//#include "common/types.h"
+#include "GPUetc/common/GNValue.h"
+#include "GPUetc/expressions/comparisonexpression.h"
 
 
 //main引数を受け取るグローバル変数
@@ -27,6 +32,7 @@ CUdeviceptr ltn_dev, rtn_dev;
 unsigned int block_x, block_y, grid_x, grid_y;
 */
 
+using namespace voltdb;
 
 GPUNIJ::GPUNIJ(){
 
@@ -93,6 +99,8 @@ GPUNIJ::GPUNIJ(){
 GPUNIJ::~GPUNIJ(){
 
   free(jt);
+  free(left_GNV);
+  free(right_GNV);
 
   //finish GPU   ****************************************************
 
@@ -123,22 +131,7 @@ uint GPUNIJ::iDivUp(uint dividend, uint divisor)
   return ((dividend % divisor) == 0) ? (dividend / divisor) : (dividend / divisor + 1);
 }
 
-//初期化する
-/*
-void
-GPUNIJ::init(void)
-{
-  
-  CUresult res;
 
-  res = cuMemHostAlloc((void**)&jt,JT_SIZE * sizeof(JOIN_TUPLE),CU_MEMHOSTALLOC_DEVICEMAP);
-  if (res != CUDA_SUCCESS) {
-    printf("cuMemHostAlloc to LEFT_TUPLE failed: res = %lu\n", (unsigned long)res);
-    exit(1);
-  }
-     
-}
-*/
 
 //HrightとHleftをそれぞれ比較する。GPUで並列化するforループもここにあるもので行う。
 int GPUNIJ::join()
@@ -152,14 +145,6 @@ int GPUNIJ::join()
   CUdeviceptr ltn_dev, rtn_dev;
   unsigned int block_x, block_y, grid_x, grid_y;
 
-  long join_time=0,count_time=0,scan_time=0,send_time=0,down_time=0;
-  struct timeval time_join_s,time_join_f,time_download_s,time_download_f;
-  struct timeval time_count_s,time_count_f;
-  struct timeval time_scan_s,time_scan_f;
-  struct timeval time_send_s,time_send_f;
-  struct timeval begin,end;
-
-  
   /*
   for(int i=0; i<left ; i++){
     printf("lt[%d] = %d\n",i,lt[i].val);
@@ -172,8 +157,6 @@ int GPUNIJ::join()
   }
   */
 
-  /*全体の実行時間計測*/
-  gettimeofday(&begin, NULL);
 
   /************** block_x * block_y is decided by BLOCK_SIZE. **************/
 
@@ -182,15 +165,12 @@ int GPUNIJ::join()
     grid_x = PART / block_x;
   if (PART % block_x != 0)
     grid_x++;
-
   grid_y = PART / block_y;
   if (PART % block_y != 0)
     grid_y++;
-
   block_y = 1;
-  //printf("grid_x = %d\tgrid_y = %d\tblock_x = %d\tblock_y = %d\n",grid_x,grid_y,block_x,block_y);
+
   gpu_size = grid_x * grid_y * block_x * block_y;
-  //printf("gpu_size = %d\n",gpu_size);
   if(gpu_size>MAX_LARGE_ARRAY_SIZE){
     gpu_size = MAX_LARGE_ARRAY_SIZE * iDivUp(gpu_size,MAX_LARGE_ARRAY_SIZE);
   }else if(gpu_size > MAX_SHORT_ARRAY_SIZE){
@@ -202,12 +182,12 @@ int GPUNIJ::join()
 
   /********************************************************************************/
 
-  res = cuMemAlloc(&lt_dev, PART * sizeof(TUPLE));
+  res = cuMemAlloc(&lt_dev, PART * sizeof(GNValue));
   if (res != CUDA_SUCCESS) {
     printf("cuMemAlloc (lefttuple) failed\n");
     exit(1);
   }
-  res = cuMemAlloc(&rt_dev, PART * sizeof(TUPLE));
+  res = cuMemAlloc(&rt_dev, PART * sizeof(GNValue));
   if (res != CUDA_SUCCESS) {
     printf("cuMemAlloc (righttuple) failed\n");
     exit(1);
@@ -250,40 +230,24 @@ int GPUNIJ::join()
       printf("gpu_size = %d\n",gpu_size);
 
 
-      gettimeofday(&time_send_s, NULL);
-      res = cuMemcpyHtoD(lt_dev, &(lt[ll]), lls * sizeof(TUPLE));
+      res = cuMemcpyHtoD(lt_dev, &(left_GNV[ll]), lls * sizeof(GNValue));
       if (res != CUDA_SUCCESS) {
         printf("cuMemcpyHtoD (lt) failed: res = %lu\n", res);//conv(res));
         exit(1);
       }
-      res = cuMemcpyHtoD(rt_dev, &(rt[rr]), rrs * sizeof(TUPLE));
+      res = cuMemcpyHtoD(rt_dev, &(right_GNV[rr]), rrs * sizeof(GNValue));
       if (res != CUDA_SUCCESS) {
         printf("cuMemcpyHtoD (rt) failed: res = %lu\n", (unsigned long)res);
         exit(1);
       }
-      gettimeofday(&time_send_f, NULL);
 
-      send_time += (time_send_f.tv_sec - time_send_s.tv_sec) * 1000 * 1000 + (time_send_f.tv_usec - time_send_s.tv_usec);
-
-      /******************************************************************
-    count the number of match tuple
-    
-      *******************************************************************/
-      
-      /*countの時間計測*/
-      gettimeofday(&time_count_s, NULL);
-
-      void *count_args[]={
-    
+      void *count_args[]={    
         (void *)&lt_dev,
         (void *)&rt_dev,
         (void *)&count_dev,
         (void *)&lls,
-        (void *)&rrs
-        
+        (void *)&rrs        
       };
-      
-      //グリッド・ブロックの指定、変数の指定、カーネルの実行を行う
       
       res = cuLaunchKernel(
                            c_function,    // CUfunction f
@@ -309,30 +273,17 @@ int GPUNIJ::join()
         exit(1);
       }  
 
-      /***************************************************************************************/
-
       /**************************** prefix sum *************************************/
-
-      gettimeofday(&time_scan_s, NULL);
       if(!(presum(&count_dev,(uint)gpu_size))){
         printf("count scan error.\n");
         exit(1);
       }
-      gettimeofday(&time_scan_f, NULL);
-      scan_time += (time_scan_f.tv_sec - time_scan_s.tv_sec) * 1000 * 1000 + (time_scan_f.tv_usec - time_scan_s.tv_usec);      
-
       /********************************************************************/      
+
       if(!transport(count_dev,(uint)gpu_size,&jt_size)){
         printf("transport error.\n");
         exit(1);
       }
-
-      gettimeofday(&time_count_f, NULL);
-
-      count_time += (time_count_f.tv_sec - time_count_s.tv_sec) * 1000 * 1000 + (time_count_f.tv_usec - time_count_s.tv_usec);
-
-      /**********************************************************************/
-
 
 
       /************************************************************************
@@ -346,13 +297,11 @@ int GPUNIJ::join()
         //printf("End...\n jt_size = %d\ttotal = %d\n",jt_size,total);
         jt_size = 0;
       }else{
-        res = cuMemAlloc(&jt_dev, jt_size * sizeof(JOIN_TUPLE));
+        res = cuMemAlloc(&jt_dev, jt_size * sizeof(RESULT));
         if (res != CUDA_SUCCESS) {
           printf("cuMemAlloc (join) failed\n");
           exit(1);
         }      
-        //実際のjoinの計算時間
-        gettimeofday(&time_join_s, NULL);
         
         void *kernel_args[]={
           (void *)&lt_dev,
@@ -388,24 +337,11 @@ int GPUNIJ::join()
           exit(1);
         }  
         
-      
-        /*実際のjoinの計算時間*/
-        gettimeofday(&time_join_f, NULL);
-        join_time += (time_join_f.tv_sec - time_join_s.tv_sec) * 1000 * 1000 + (time_join_f.tv_usec - time_join_s.tv_usec);
-
-        //downloadの時間計測
-        gettimeofday(&time_download_s, NULL);      
-        
-        res = cuMemcpyDtoH(&(jt[total]), jt_dev, jt_size * sizeof(JOIN_TUPLE));
+        res = cuMemcpyDtoH(&(jt[total]), jt_dev, jt_size * sizeof(RESULT));
         if (res != CUDA_SUCCESS) {
           printf("cuMemcpyDtoH (jt) failed: res = %lu\n", (unsigned long)res);
           exit(1);
         }
-                //downloadの時間計測
-        gettimeofday(&time_download_f, NULL);
-
-        down_time += (time_download_f.tv_sec - time_download_s.tv_sec) * 1000 * 1000 + (time_download_f.tv_usec - time_download_s.tv_usec);        
-
         cuMemFree(jt_dev);
         total += jt_size;
         printf("End...\n jt_size = %d\ttotal = %d\n",jt_size,total);
@@ -440,34 +376,6 @@ int GPUNIJ::join()
 
   /********************************************************************/
 
-  gettimeofday(&end, NULL);
-
-
-  /*  
-  printf("\n\n");
-  printf("******************execution time********************************************\n\n");
-
-  printf("Calculation all with Devise\n");
-  printDiff(begin,end);
-
-  printf("Calculation send with Devise\n");
-  printf("Diff: %ld us (%ld ms)\n", send_time, send_time/1000);
-
-  printf("Calculation count with Devise\n");
-  printf("Diff: %ld us (%ld ms)\n", count_time, count_time/1000);
-
-  printf("scan time\n");
-  printf("Diff: %ld us (%ld ms)\n", scan_time, scan_time/1000);
-
-  printf("Calculation join with Devise\n");
-  printf("Diff: %ld us (%ld ms)\n", join_time, join_time/1000);
-
-  printf("Calculation download with Devise\n");
-  printf("Diff: %ld us (%ld ms)\n", down_time, down_time/1000);
-
-
-  printf("the number of total match tuple = %d\n",total);
-  */
 
   /*
   for(i=0;i<3&&i<JT_SIZE;i++){

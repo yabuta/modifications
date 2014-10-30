@@ -143,7 +143,7 @@ def buildMakefile(CTX):
     NMFLAGS = CTX.NMFLAGS
 #add part
     GPUFLAGS = "-lcuda -lstdc++ -lcudart -L/usr/local/cuda/lib64 -I/usr/local/cuda/include"
-    INCLUDE = "-I/usr/local/cuda/include -I../../src/ee/executors/ -I/usr/local/cuda/samples/6_Advanced/ -I/usr/local/cuda/samples/common/inc"
+    INCLUDE = "-I/usr/local/cuda/include -I../../src/ee/executors/ -I../../src/ee/ -I/usr/local/cuda/samples/6_Advanced/ -I/usr/local/cuda/samples/common/inc"
     LOCALCPPFLAGS += " %s %s" % (GPUFLAGS,INCLUDE)
 #add part end
 
@@ -257,6 +257,18 @@ def buildMakefile(CTX):
     makefile.write("\n")
 
 
+    SCAN_PATH = "../../src/ee/executors/"
+    GPUPATH = " ../../src/ee/executors/GPUNIJ.h ../../src/ee/executors/GPUTUPLE.h ../../src/ee/GPUetc/common/GNValue.h ../../src/ee/GPUetc/expressions/comparisonexpression.h"
+    makefile.write("objects/executors/scan.co:../../src/ee/executors/scan.cu %s\n"%GPUPATH)
+    makefile.write("\tnvcc $(INCLUDE) -Xcompiler '-fPIC' -arch sm_35 -c -o objects/executors/scan.co %sscan.cu\n"%(SCAN_PATH))    
+    makefile.write("objects/executors/join_gpu.cubin:../../src/ee/executors/join_gpu.cu %s\n"%GPUPATH)
+    makefile.write("\tnvcc $(INCLUDE) -isystem ../../third_party/cpp/ -arch sm_35 -cubin -o objects/executors/join_gpu.cubin %sjoin_gpu.cu\n"%(SCAN_PATH))
+    makefile.write("objects/executors/scan_main.co:../../src/ee/executors/scan_main.cpp %s\n"%GPUPATH)    
+    makefile.write("\tg++ $(INCLUDE) $(GPUFLAGS) -fPIC -o objects/executors/scan_main.co -c %sscan_main.cpp\n"%(SCAN_PATH))
+    makefile.write("objects/executors/GPUNIJ.co:../../src/ee/executors/GPUNIJ.cpp objects/executors/join_gpu.cubin %s\n"%GPUPATH)
+    makefile.write("\tg++ $(INCLUDE) $(GPUFLAGS) -isystem ../../third_party/cpp/ -fPIC -o objects/executors/GPUNIJ.co -c %sGPUNIJ.cpp\n"%(SCAN_PATH))
+
+
     LOCALTESTCPPFLAGS = LOCALCPPFLAGS + " -I%s" % (TEST_PREFIX)
     allsources = []
     for filename in input_paths:
@@ -280,42 +292,12 @@ def buildMakefile(CTX):
             static_targetpath = OUTPUT_PREFIX + "/" + "/".join(static_objname.split("/")[:-1])
             os.system("mkdir -p %s" % (jni_targetpath))
             os.system("mkdir -p %s" % (static_targetpath))
-            SCAN_PATH = "../../src/ee/executors/"
-            makefile.write("objects/executors/scan.co:../../src/ee/executors/scan.cu ../../src/ee/executors/GPUNIJ.h ../../src/ee/executors/GPUTUPLE.h\n")
-            makefile.write("\tnvcc $(INCLUDE) -Xcompiler '-fPIC' -arch sm_35 -c -o objects/executors/scan.co %sscan.cu\n"%(SCAN_PATH))
-
-            makefile.write("objects/executors/join_gpu.cubin:../../src/ee/executors/join_gpu.cu ../../src/ee/executors/GPUNIJ.h ../../src/ee/executors/GPUTUPLE.h\n")
-            makefile.write("\tnvcc $(INCLUDE) -arch sm_35 -cubin -o objects/executors/join_gpu.cubin %sjoin_gpu.cu\n"%(SCAN_PATH))
-            makefile.write("objects/executors/scan_main.co:../../src/ee/executors/scan_main.cpp ../../src/ee/executors/GPUTUPLE.h ../../src/ee/executors/GPUNIJ.h\n")
-
-            makefile.write("\tg++ $(INCLUDE) $(GPUFLAGS) -fPIC -o objects/executors/scan_main.co -c %sscan_main.cpp\n"%(SCAN_PATH))
-            makefile.write("objects/executors/GPUNIJ.co:../../src/ee/executors/GPUNIJ.cpp objects/executors/join_gpu.cubin ../../src/ee/executors/GPUNIJ.h ../../src/ee/executors/GPUTUPLE.h\n")
-            makefile.write("\tg++ $(INCLUDE) $(GPUFLAGS) -fPIC -o objects/executors/GPUNIJ.co -c %sGPUNIJ.cpp\n"%(SCAN_PATH))
-
-            makefile.write(jni_objname + ": " + filename + " " + " ".join(mydeps) + " ../../src/ee/executors/GPUNIJ.h ../../src/ee/executors/GPUTUPLE.h" + "\n")
-            makefile.write("\t$(CCHACHE) $(COMPILE.cpp) $(GPUFLAGS) $(INCLUDE) %s -o $@ %s\n" % (CTX.EXTRAFLAGS, filename))
-#            makefile.write("\tnvcc $(CXXFLAGS) -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -DNOCLOCK -DBOOST_SP_DISABLE_THREADS -DBOOST_DISABLE_THREADS -DBOOST_ALL_NO_LIB -Xcompiler '-fPIC' -isystem ../../third_party/cpp -I../../src/ee $(TARGET_ARCH) -c $(GPUFLAGS) $(INCLUDE) %s -o $@ %s\n" % (CTX.EXTRAFLAGS, filename))
-            makefile.write(static_objname + ": " + filename + " " + " ".join(mydeps) + " ../../src/ee/executors/GPUNIJ.h ../../src/ee/executors/GPUTUPLE.h" + "\n")
+            makefile.write(jni_objname + ": " + filename + " " + " ".join(mydeps) + GPUPATH + "\n")
             makefile.write("\t$(CCACHE) $(COMPILE.cpp) $(GPUFLAGS) $(INCLUDE) %s -o $@ %s\n" % (CTX.EXTRAFLAGS, filename))
-#            makefile.write("\t$(CCHACHE) $(COMPILE.cpp) $(GPUFLAGS) $(INCLUDE) %s -o $@ %s\n" % (CTX.EXTRAFLAGS, filename))
+            makefile.write(static_objname + ": " + filename + " " + " ".join(mydeps) + GPUPATH + "\n")
+            makefile.write("\t$(CCACHE) $(COMPILE.cpp) $(GPUFLAGS) $(INCLUDE) %s -o $@ %s\n" % (CTX.EXTRAFLAGS, filename))
             makefile.write("\n")
 #add part end
-        elif "voltdbjni.cpp" in filename or "JNILogProxy.cpp" in filename:
-            print filename
-            mydeps = deps[filename]
-            mydeps = [x.replace(INPUT_PREFIX, "$(SRC)") for x in mydeps]
-            jni_objname, static_objname = outputNamesForSource(filename)
-            filename = filename.replace(INPUT_PREFIX, "$(SRC)")
-            jni_targetpath = OUTPUT_PREFIX + "/" + "/".join(jni_objname.split("/")[:-1])
-            static_targetpath = OUTPUT_PREFIX + "/" + "/".join(static_objname.split("/")[:-1])
-            os.system("mkdir -p %s" % (jni_targetpath))
-            os.system("mkdir -p %s" % (static_targetpath))
-            makefile.write(jni_objname + ": " + filename + " " + " ".join(mydeps) + "\n")
-            makefile.write("\t$(CCACHE) $(COMPILE.cpp) $(GPUFLAGS) $(INCLUDE) %s -o $@ %s\n" % (CTX.EXTRAFLAGS, filename))
-            makefile.write(static_objname + ": " + filename + " " + " ".join(mydeps) + "\n")
-            makefile.write("\t$(CCACHE) $(COMPILE.cpp) $(GPUFLAGS) $(INCLUDE) %s -o $@ %s\n" % (CTX.EXTRAFLAGS, filename))
-            makefile.write("\n")
-            
         else:
             mydeps = deps[filename]
             mydeps = [x.replace(INPUT_PREFIX, "$(SRC)") for x in mydeps]
@@ -326,10 +308,8 @@ def buildMakefile(CTX):
             os.system("mkdir -p %s" % (jni_targetpath))
             os.system("mkdir -p %s" % (static_targetpath))
             makefile.write(jni_objname + ": " + filename + " " + " ".join(mydeps) + "\n")
-#            makefile.write("\tnvcc $(CXXFLAGS) -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -DNOCLOCK -DBOOST_SP_DISABLE_THREADS -DBOOST_DISABLE_THREADS -DBOOST_ALL_NO_LIB -Xcompiler '-fPIC' -isystem ../../third_party/cpp -I../../src/ee $(TARGET_ARCH) -c $(GPUFLAGS) $(INCLUDE) %s -o $@ %s\n" % (CTX.EXTRAFLAGS, filename))
             makefile.write("\t$(CCACHE) $(COMPILE.cpp) %s -o $@ %s\n" % (CTX.EXTRAFLAGS, filename))
             makefile.write(static_objname + ": " + filename + " " + " ".join(mydeps) + "\n")
-#            makefile.write("\tnvcc $(CXXFLAGS) -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -DNOCLOCK -DBOOST_SP_DISABLE_THREADS -DBOOST_DISABLE_THREADS -DBOOST_ALL_NO_LIB -Xcompiler '-fPIC' -isystem ../../third_party/cpp -I../../src/ee $(TARGET_ARCH) -c $(GPUFLAGS) $(INCLUDE) %s -o $@ %s\n" % (CTX.EXTRAFLAGS, filename))
             makefile.write("\t$(CCACHE) $(COMPILE.cpp) %s -o $@ %s\n" % (CTX.EXTRAFLAGS, filename))
             makefile.write("\n")
             

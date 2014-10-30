@@ -29,7 +29,6 @@
 #include <string>
 #include <algorithm>
 #include <vector>
-#include <cuda.h>
 
 #include "boost/scoped_ptr.hpp"
 #include "boost/functional/hash.hpp"
@@ -47,7 +46,6 @@
 #include "common/value_defs.h"
 #include "utf8.h"
 #include "murmur3/MurmurHash3.h"
-#include "GPUetc/cudaheader.h"
 
 namespace voltdb {
 
@@ -273,7 +271,7 @@ class NValue {
        storage area provided. If this is an Object type then the third
        argument indicates whether the object is stored in the tuple
        inline */
-    CUDAH static NValue initFromTupleStorage(const void *storage, ValueType type, bool isInlined);
+  static NValue initFromTupleStorage(const void *storage, ValueType type, bool isInlined);
 
     /* Serialize the scalar this NValue represents to the provided
        storage area. If the scalar is an Object type that is not
@@ -650,6 +648,25 @@ class NValue {
         return &valueChars[i];
     }
 
+  /**
+     add part for GPU join
+     To move NValue's m_data,InlineSource and ValueType to GNValue,
+     we add three public function to get these value.
+
+   */
+
+  inline const char *getMdataForGPU(){
+    return m_data;
+  }
+
+  inline const ValueType getValueTypeForGPU(){
+    return m_ValueType;
+  }
+  
+  inline const bool getSourceInlinedForGPU(){
+    return m_SourceInlined;
+  }
+
 
   private:
     /*
@@ -722,12 +739,12 @@ class NValue {
         return getTypeName(m_valueType);
     }
 
-    CUDAH void setSourceInlined(bool sourceInlined)
+    void setSourceInlined(bool sourceInlined)
     {
         m_sourceInlined = sourceInlined;
     }
 
-    CUDAH void tagAsNull() { m_data[13] = OBJECT_NULL_BIT; }
+    void tagAsNull() { m_data[13] = OBJECT_NULL_BIT; }
 
     /**
      * An Object is something like a String that has a variable length
@@ -747,7 +764,7 @@ class NValue {
     }
 
 
-    CUDAH int8_t setObjectLength(int32_t length) {
+    int8_t setObjectLength(int32_t length) {
         *reinterpret_cast<int32_t *>(&m_data[8]) = length;
         int8_t lengthLength = getAppropriateObjectLengthLength(length);
         setObjectLengthLength(lengthLength);
@@ -836,66 +853,66 @@ class NValue {
     }
 
     // getters
-    CUDAH const int8_t& getTinyInt() const {
+    const int8_t& getTinyInt() const {
         assert(getValueType() == VALUE_TYPE_TINYINT);
         return *reinterpret_cast<const int8_t*>(m_data);
     }
 
-    CUDAH int8_t& getTinyInt() {
+    int8_t& getTinyInt() {
         assert(getValueType() == VALUE_TYPE_TINYINT);
         return *reinterpret_cast<int8_t*>(m_data);
     }
 
-    CUDAH const int16_t& getSmallInt() const {
+    const int16_t& getSmallInt() const {
         assert(getValueType() == VALUE_TYPE_SMALLINT);
         return *reinterpret_cast<const int16_t*>(m_data);
     }
 
-    CUDAH int16_t& getSmallInt() {
+    int16_t& getSmallInt() {
         assert(getValueType() == VALUE_TYPE_SMALLINT);
         return *reinterpret_cast<int16_t*>(m_data);
     }
 
-    CUDAH const int32_t& getInteger() const {
+    const int32_t& getInteger() const {
         assert(getValueType() == VALUE_TYPE_INTEGER);
         return *reinterpret_cast<const int32_t*>(m_data);
     }
 
-    CUDAH int32_t& getInteger() {
+    int32_t& getInteger() {
         assert(getValueType() == VALUE_TYPE_INTEGER);
         return *reinterpret_cast<int32_t*>(m_data);
     }
 
-    CUDAH const int64_t& getBigInt() const {
+    const int64_t& getBigInt() const {
         assert((getValueType() == VALUE_TYPE_BIGINT) ||
                (getValueType() == VALUE_TYPE_TIMESTAMP) ||
                (getValueType() == VALUE_TYPE_ADDRESS));
         return *reinterpret_cast<const int64_t*>(m_data);
     }
 
-    CUDAH int64_t& getBigInt() {
+    int64_t& getBigInt() {
         assert((getValueType() == VALUE_TYPE_BIGINT) ||
                (getValueType() == VALUE_TYPE_TIMESTAMP) ||
                (getValueType() == VALUE_TYPE_ADDRESS));
         return *reinterpret_cast<int64_t*>(m_data);
     }
 
-    CUDAH const int64_t& getTimestamp() const {
+    const int64_t& getTimestamp() const {
         assert(getValueType() == VALUE_TYPE_TIMESTAMP);
         return *reinterpret_cast<const int64_t*>(m_data);
     }
 
-    CUDAH int64_t& getTimestamp() {
+    int64_t& getTimestamp() {
         assert(getValueType() == VALUE_TYPE_TIMESTAMP);
         return *reinterpret_cast<int64_t*>(m_data);
     }
 
-    CUDAH const double& getDouble() const {
+    const double& getDouble() const {
         assert(getValueType() == VALUE_TYPE_DOUBLE);
         return *reinterpret_cast<const double*>(m_data);
     }
 
-    CUDAH double& getDouble() {
+    double& getDouble() {
         assert(getValueType() == VALUE_TYPE_DOUBLE);
         return *reinterpret_cast<double*>(m_data);
     }
@@ -2533,7 +2550,7 @@ inline void NValue::setNull() {
  * storage area provided. If this is an Object type then the third
  * argument indicates whether the object is stored in the tuple inline.
  */
-inline CUDAH NValue NValue::initFromTupleStorage(const void *storage, ValueType type, bool isInlined)
+inline NValue NValue::initFromTupleStorage(const void *storage, ValueType type, bool isInlined)
 {
     NValue retval(type);
     switch (type)
@@ -3711,5 +3728,6 @@ inline NValue NValue::like(const NValue rhs) const {
 }
 
 } // namespace voltdb
+
 
 #endif /* NVALUE_HPP_ */

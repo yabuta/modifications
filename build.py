@@ -54,7 +54,7 @@ CTX.CPPFLAGS += """-Wall -Wextra -Werror -Woverloaded-virtual
 
 # clang doesn't seem to want this
 if compiler_name == 'gcc':
-#    CTX.CPPFLAGS += " -pthread"#changed
+    CTX.CPPFLAGS += " -pthread"#changed
     CTX.LDFLAGS += " -rdynamic"
 
 if (compiler_name == 'clang') and (compiler_major == 3 and compiler_minor >= 4):

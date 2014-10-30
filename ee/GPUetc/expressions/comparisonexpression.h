@@ -46,6 +46,7 @@
 #ifndef HSTORECOMPARISONEXPRESSION_H
 #define HSTORECOMPARISONEXPRESSION_H
 
+/*
 #include "common/common.h"
 #include "common/serializeio.h"
 #include "common/valuevector.h"
@@ -54,6 +55,11 @@
 #include "expressions/parametervalueexpression.h"
 #include "expressions/constantvalueexpression.h"
 #include "expressions/tuplevalueexpression.h"
+*/
+
+#include "GPUetc/common/GNValue.h"
+
+#include "GPUetc/cudaheader.h"
 
 #include <string>
 #include <cassert>
@@ -61,63 +67,74 @@
 
 namespace voltdb {
 
-class CmpEq {
+class GCmpEq {
 public:
-    inline NValue cmp(NValue l, NValue r) const { return l.op_equals_withoutNull(r);}
+    inline CUDAH bool cmp(GNValue l, GNValue r) const { return l.op_equals_withoutNull(r);}
 };
-class CmpNe {
+class GCmpNe {
 public:
-    inline NValue cmp(NValue l, NValue r) const { return l.op_notEquals_withoutNull(r);}
+    inline CUDAH bool cmp(GNValue l, GNValue r) const { return l.op_notEquals_withoutNull(r);}
 };
-class CmpLt {
+class GCmpLt {
 public:
-    inline NValue cmp(NValue l, NValue r) const { return l.op_lessThan_withoutNull(r);}
+    inline CUDAH bool cmp(GNValue l, GNValue r) const { return l.op_lessThan_withoutNull(r);}
 };
-class CmpGt {
+class GCmpGt {
 public:
-    inline NValue cmp(NValue l, NValue r) const { return l.op_greaterThan_withoutNull(r);}
+    inline CUDAH bool cmp(GNValue l, GNValue r) const { return l.op_greaterThan_withoutNull(r);}
 };
-class CmpLte {
+class GCmpLte {
 public:
-    inline NValue cmp(NValue l, NValue r) const { return l.op_lessThanOrEqual_withoutNull(r);}
+    inline CUDAH bool cmp(GNValue l, GNValue r) const { return l.op_lessThanOrEqual_withoutNull(r);}
 };
-class CmpGte {
+class GCmpGte {
 public:
-    inline NValue cmp(NValue l, NValue r) const { return l.op_greaterThanOrEqual_withoutNull(r);}
+    inline CUDAH bool cmp(GNValue l, GNValue r) const { return l.op_greaterThanOrEqual_withoutNull(r);}
 };
-class CmpLike {
+/*
+class GCmpLike {
 public:
-    inline NValue cmp(NValue l, NValue r) const { return l.like(r);}
+    inline CUDAH bool cmp(GNValue l, GNValue r) const { return l.like(r);}
 };
-class CmpIn {
+*/
+
+/*
+class GCmpIn {
 public:
-    inline NValue cmp(NValue l, NValue r) const
+    inline CUDAH bool cmp(GNValue l, GNValue r) const
     { return l.inList(r) ? NValue::getTrue() : NValue::getFalse(); }
 };
+*/
 
 template <typename C>
-class ComparisonExpression : public AbstractExpression {
+class ComparisonExpression{
 public:
-    ComparisonExpression(ExpressionType type,
-                                  AbstractExpression *left,
-                                  AbstractExpression *right)
-        : AbstractExpression(type, left, right)
+    ComparisonExpression(C com)
     {
+        compare = com;
+
+/*
         m_left = left;
         m_right = right;
+*/
     };
 
-    inline NValue eval(const TableTuple *tuple1, const TableTuple *tuple2) const {
+    inline CUDAH bool eval(const GNValue *NV1, const GNValue *NV2) const {
+        printf("comparison\n");
+/*
         VOLT_TRACE("eval %s. left %s, right %s. ret=%s",
                    typeid(compare).name(), typeid(*(m_left)).name(),
                    typeid(*(m_right)).name(),
                    compare.cmp(m_left->eval(tuple1, tuple2),
                                m_right->eval(tuple1, tuple2)).isTrue()
                    ? "TRUE" : "FALSE");
+*/
 
+/*
         assert(m_left != NULL);
         assert(m_right != NULL);
-
+*/
+/*
         NValue lnv = m_left->eval(tuple1, tuple2);
         if (lnv.isNull()) {
             return NValue::getNullValue(VALUE_TYPE_BOOLEAN);
@@ -127,7 +144,7 @@ public:
         if (rnv.isNull()) {
             return NValue::getNullValue(VALUE_TYPE_BOOLEAN);
         }
-
+*/
         // comparisons with null or NaN are always false
         // [This code is commented out because doing the right thing breaks voltdb atm.
         // We need to re-enable after we can verify that all plans in all configs give the
@@ -136,19 +153,23 @@ public:
             return NValue::getFalse();
         }*/
 
-        return compare.cmp(lnv, rnv);
+        return compare.cmp(NV1, NV2);
     }
 
+/*
     std::string debugInfo(const std::string &spacer) const {
         return (spacer + "ComparisonExpression\n");
     }
-
+*/
 private:
+/*
     AbstractExpression *m_left;
     AbstractExpression *m_right;
+*/
     C compare;
 };
 
+/*
 template <typename C, typename L, typename R>
 class InlinedComparisonExpression : public ComparisonExpression<C> {
 public:
@@ -158,6 +179,6 @@ public:
         : ComparisonExpression<C>(type, left, right)
     {}
 };
-
+*/
 }
 #endif

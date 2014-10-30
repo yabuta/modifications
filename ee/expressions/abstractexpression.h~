@@ -135,6 +135,7 @@ class AbstractExpression {
         m_valueSize = size;
     }
 
+/*
     const AbstractExpression *getLeft() const {
         return m_left;
     }
@@ -142,6 +143,7 @@ class AbstractExpression {
     const AbstractExpression *getRight() const {
         return m_right;
     }
+*/
 
   protected:
     AbstractExpression();

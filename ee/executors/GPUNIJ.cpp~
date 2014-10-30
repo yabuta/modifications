@@ -12,6 +12,11 @@
 #include "GPUTUPLE.h"
 #include "GPUNIJ.h"
 #include "scan_common.h"
+//#include "expressions/abstractexpression.h"
+//#include "expressions/comparisonexpression.h"
+//#include "common/types.h"
+#include "GPUetc/common/GNValue.h"
+#include "GPUetc/expressions/comparisonexpression.h"
 
 
 //main引数を受け取るグローバル変数
@@ -27,6 +32,7 @@ CUdeviceptr ltn_dev, rtn_dev;
 unsigned int block_x, block_y, grid_x, grid_y;
 */
 
+using namespace voltdb;
 
 GPUNIJ::GPUNIJ(){
 
@@ -84,12 +90,17 @@ GPUNIJ::GPUNIJ(){
 
 
 
+
+
+
 }
 
 
 GPUNIJ::~GPUNIJ(){
 
   free(jt);
+  free(left_GNV);
+  free(right_GNV);
 
   //finish GPU   ****************************************************
 
@@ -120,22 +131,7 @@ uint GPUNIJ::iDivUp(uint dividend, uint divisor)
   return ((dividend % divisor) == 0) ? (dividend / divisor) : (dividend / divisor + 1);
 }
 
-//初期化する
-/*
-void
-GPUNIJ::init(void)
-{
-  
-  CUresult res;
 
-  res = cuMemHostAlloc((void**)&jt,JT_SIZE * sizeof(JOIN_TUPLE),CU_MEMHOSTALLOC_DEVICEMAP);
-  if (res != CUDA_SUCCESS) {
-    printf("cuMemHostAlloc to LEFT_TUPLE failed: res = %lu\n", (unsigned long)res);
-    exit(1);
-  }
-     
-}
-*/
 
 //HrightとHleftをそれぞれ比較する。GPUで並列化するforループもここにあるもので行う。
 int GPUNIJ::join()
@@ -343,7 +339,7 @@ int GPUNIJ::join()
         //printf("End...\n jt_size = %d\ttotal = %d\n",jt_size,total);
         jt_size = 0;
       }else{
-        res = cuMemAlloc(&jt_dev, jt_size * sizeof(JOIN_TUPLE));
+        res = cuMemAlloc(&jt_dev, jt_size * sizeof(RESULT));
         if (res != CUDA_SUCCESS) {
           printf("cuMemAlloc (join) failed\n");
           exit(1);
@@ -393,7 +389,7 @@ int GPUNIJ::join()
         //downloadの時間計測
         gettimeofday(&time_download_s, NULL);      
         
-        res = cuMemcpyDtoH(&(jt[total]), jt_dev, jt_size * sizeof(JOIN_TUPLE));
+        res = cuMemcpyDtoH(&(jt[total]), jt_dev, jt_size * sizeof(RESULT));
         if (res != CUDA_SUCCESS) {
           printf("cuMemcpyDtoH (jt) failed: res = %lu\n", (unsigned long)res);
           exit(1);

@@ -50,6 +50,7 @@
 #include "common/valuevector.h"
 #include "executors/abstractexecutor.h"
 
+
 namespace voltdb {
 
 class UndoLog;
@@ -68,6 +69,8 @@ NestLoopExecutor(VoltDBEngine *engine, AbstractPlanNode* abstract_node) :
 protected:
     bool p_init(AbstractPlanNode*,
                 TempTableLimits* limits);
+    //void getGNValue(GNValue *gn,NValue NV);
+
     bool p_execute(const NValueArray &params);
     
     StandAloneTupleStorage m_null_tuple;

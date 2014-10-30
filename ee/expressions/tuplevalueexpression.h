@@ -93,6 +93,7 @@ class TupleValueExpression : public AbstractExpression {
     }
 
     int getColumnId() const {return this->value_idx;}
+    inline int getTupleId() {return this->tuple_idx;} //add for GPU join
 
   protected:
 

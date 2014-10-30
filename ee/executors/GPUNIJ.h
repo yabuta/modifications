@@ -11,6 +11,10 @@ GPUで動かすため配列のほうが向いていると思ったので
 
 #include <cuda.h>
 #include "GPUTUPLE.h"
+#include "GPUetc/common/GNValue.h"
+
+using namespace voltdb;
+
 
 class GPUNIJ {
 
@@ -19,32 +23,21 @@ public:
 #define JT_SIZE 120000000
 
 
-    TUPLE *lt,*rt;
-    JOIN_TUPLE *jt;
-
-    int left,right;
-
     GPUNIJ();
     ~GPUNIJ();
     
     int join();
 
-    void setData(TUPLE *tlt,TUPLE *trt,int leftSize,int rightSize){
+    void setTableData(GNValue *lGNV,GNValue *rGNV,int outerSize,int innerSize){
         
-        lt = tlt;
-        rt = trt;
-        jt = (JOIN_TUPLE *)malloc(JT_SIZE*sizeof(JOIN_TUPLE));
-
-        left = leftSize;
-        right = rightSize;
-
-        if(leftSize<524288&&rightSize<524288){
-            PART = leftSize;
-        }
+        left_GNV = lGNV;
+        right_GNV = rGNV;
+        left = outerSize;
+        right = innerSize;
 
     }
 
-    JOIN_TUPLE *getResult(){
+    RESULT *getJoinResult(){
         return jt;
     }
 
@@ -53,11 +46,12 @@ private:
 
 //for partition execution
    
-//1blockでのスレッド数の定義。
-#define BLOCK_SIZE_X 256  //outer ,left
-#define BLOCK_SIZE_Y 512  //inner ,right
+    RESULT *jt;
 
-#define SELECTIVITY 1000000000
+    int left,right;
+
+    GNValue *left_GNV;
+    GNValue *right_GNV;
 
     int PART;
 

@@ -648,6 +648,25 @@ class NValue {
         return &valueChars[i];
     }
 
+  /**
+     add part for GPU join
+     To move NValue's m_data,InlineSource and ValueType to GNValue,
+     we add three public function to get these value.
+
+   */
+
+  inline const char *getMdataForGPU(){
+    return m_data;
+  }
+
+  inline const ValueType getValueTypeForGPU(){
+    return m_valueType;
+  }
+  
+  inline const bool getSourceInlinedForGPU(){
+    return m_sourceInlined;
+  }
+
 
   private:
     /*

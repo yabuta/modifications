@@ -1,18 +1,23 @@
 #ifndef GPUTUPLE_H
 #define GPUTUPLE_H
 
+namespace voltdb{
+//1blockでのスレッド数の定義。
+#define BLOCK_SIZE_X 256  //outer ,left
+#define BLOCK_SIZE_Y 512  //inner ,right
+
+#define SELECTIVITY 1000000000
+
+
 typedef struct _TUPLE {
     int key;
     int val;
 } TUPLE;
 
-
-typedef struct _JOIN_TUPLE {
-    int key;
+typedef struct _RESULT {
     int lkey;
-    int lval; // left value
     int rkey;
-    int rval; // right value
-} JOIN_TUPLE;
+} RESULT;
+}
 
 #endif

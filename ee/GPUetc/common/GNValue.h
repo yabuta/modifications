@@ -15,8 +15,13 @@
  * along with VoltDB.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef NVALUE_HPP_
-#define NVALUE_HPP_
+#ifndef GNVALUE_HPP_
+#define GNVALUE_HPP_
+
+#ifndef __STDC_LIMIT_MACROS
+#define __STDC_LIMIT_MACROS
+#endif
+
 
 #include <cassert>
 #include <cfloat>
@@ -33,24 +38,13 @@
 #include "boost/scoped_ptr.hpp"
 #include "boost/functional/hash.hpp"
 #include "ttmath/ttmathint.h"
-
-//#include "common/ExportSerializeIo.h"
-//#include "common/FatalException.hpp"
-//#include "common/Pool.hpp"
-//#include "common/SQLException.h"
-#include "common/StringRef.h"
-//#include "common/ThreadLocalPool.h"
-//#include "common/debuglog.h"
-//#include "common/serializeio.h"
 #include "common/types.h"
 #include "common/value_defs.h"
-//#include "utf8.h"
-//#include "murmur3/MurmurHash3.h"
 #include "../cudaheader.h"
 
 
 
-namespace gvoltdb {
+namespace voltdb {
 
 
 /*
@@ -69,7 +63,7 @@ namespace gvoltdb {
 //The int used for storage and return values
 typedef ttmath::Int<2> TTInt;
 //Long integer with space for multiplication and division without carry/overflow
-typedef ttmath::Int<4> TTLInt;
+//typedef ttmath::Int<4> TTLInt;
 
   /*
 template<typename T>
@@ -239,46 +233,44 @@ inline void streamSQLFloatFormat(std::stringstream& streamOut, double floatValue
  * checking. ValueFactory can be used to construct new NValues, but
  * that should be avoided if possible.
  */
-class NValue {
-    friend class ValuePeeker;
-    friend class ValueFactory;
+class GNValue {
 
   public:
     /* Create a default NValue */
-    NValue();
+    GNValue();
 
         // todo: free() should not really be const
 
     /* Release memory associated to object type NValues */
-    void free() const;
+    //void free() const;
 
     /* Release memory associated to object type tuple columns */
-    static void freeObjectsFromTupleStorage(std::vector<char*> const &oldObjects);
+    //static void freeObjectsFromTupleStorage(std::vector<char*> const &oldObjects);
 
     /* Set value to the correct SQL NULL representation. */
-    void setNull();
+    //void setNull();
 
     /* Reveal the contained pointer for type values  */
-    void* castAsAddress() const;
+    //oid* castAsAddress() const;
 
     /* Create a boolean true NValue */
-    static NValue getTrue();
+    //static GNValue getTrue();
 
     /* Create a boolean false NValue */
-    static NValue getFalse();
+    //static GNValue getFalse();
 
     /* Create an NValue with the null representation for valueType */
-    static CUDAH NValue getNullValue(ValueType);
+    //static CUDAH GNValue getNullValue(ValueType);
 
     /* Create an NValue promoted/demoted to type */
-    NValue castAs(ValueType type) const;
+    //GNValue castAs(ValueType type) const;
 
         // todo: Why doesn't this return size_t? Also, this is a
         // quality of ValueType, not NValue.
 
     /* Calculate the tuple storage size for an NValue type. VARCHARs
        assume out-of-band tuple storage */
-    static uint16_t getTupleStorageSize(const ValueType type);
+    //static uint16_t getTupleStorageSize(const ValueType type);
 
        // todo: Could the isInlined argument be removed by have the
        // caller dereference the pointer?
@@ -287,7 +279,7 @@ class NValue {
        storage area provided. If this is an Object type then the third
        argument indicates whether the object is stored in the tuple
        inline */
-    static CUDAH NValue initFromTupleStorage(const void *storage, ValueType type, bool isInlined);
+    //static CUDAH GNValue initFromTupleStorage(const void *storage, ValueType type, bool isInlined);
 
     /* Serialize the scalar this NValue represents to the provided
        storage area. If the scalar is an Object type that is not
@@ -306,7 +298,7 @@ class NValue {
        whereas the field in the tuple is not inlined), will be done in
        the temp string pool. */
     //CUDAH void serializeToTupleStorage(
-        void *storage, const bool isInlined, const int32_t maxLength, const bool isInBytes) const;
+  //  void *storage, const bool isInlined, const int32_t maxLength, const bool isInBytes) const;
 
     /* Deserialize a scalar value of the specified type from the
        SerializeInput directly into the tuple storage area
@@ -343,7 +335,7 @@ class NValue {
     //void allocateObjectFromInlinedValue(Pool* pool);
 
     /* Check if the value represents SQL NULL */
-    //CUDAH bool isNull() const;
+    CUDAH bool isNull() const;
 
     /* Check if the value represents IEEE 754 NaN */
     //bool isNaN() const;
@@ -355,7 +347,7 @@ class NValue {
     /* Tell caller if this NValue's value refers back to VARCHAR or
        VARBINARY data internal to a TableTuple (and not a
        StringRef) */
-    //bool getSourceInlined() const;
+    bool getSourceInlined() const;
 
     /* For number values, check the number line. */
     //bool isZero() const;
@@ -371,31 +363,32 @@ class NValue {
        op_ functions which return boolean NValues.
      */
 
-    int compareNull(const NValue rhs) const;
-    int compare(const NValue rhs) const;
-    int compare_withoutNull(const NValue rhs) const;
+    //int compareNull(const GNValue rhs) const;
+    //int compare(const GNValue rhs) const;
+    int compare_withoutNull(const GNValue rhs) const;
 
     /* Return a boolean NValue with the comparison result */
-    NValue op_equals(const NValue rhs) const;
-    NValue op_notEquals(const NValue rhs) const;
-    NValue op_lessThan(const NValue rhs) const;
-    NValue op_lessThanOrEqual(const NValue rhs) const;
-    NValue op_greaterThan(const NValue rhs) const;
-    NValue op_greaterThanOrEqual(const NValue rhs) const;
-
-    NValue op_equals_withoutNull(const NValue rhs) const;
-    NValue op_notEquals_withoutNull(const NValue rhs) const;
-    NValue op_lessThan_withoutNull(const NValue rhs) const;
-    NValue op_lessThanOrEqual_withoutNull(const NValue rhs) const;
-    NValue op_greaterThan_withoutNull(const NValue rhs) const;
-    NValue op_greaterThanOrEqual_withoutNull(const NValue rhs) const;
+/*
+    GNValue op_equals(const GNValue rhs) const;
+    GNValue op_notEquals(const GNValue rhs) const;
+    GNValue op_lessThan(const GNValue rhs) const;
+    GNValue op_lessThanOrEqual(const GNValue rhs) const;
+    GNValue op_greaterThan(const GNValue rhs) const;
+    GNValue op_greaterThanOrEqual(const GNValue rhs) const;
+*/
+    bool op_equals_withoutNull(const GNValue rhs) const;
+    bool op_notEquals_withoutNull(const GNValue rhs) const;
+    bool op_lessThan_withoutNull(const GNValue rhs) const;
+    bool op_lessThanOrEqual_withoutNull(const GNValue rhs) const;
+    bool op_greaterThan_withoutNull(const GNValue rhs) const;
+    bool op_greaterThanOrEqual_withoutNull(const GNValue rhs) const;
 
 
     /* Return a copy of MAX(this, rhs) */
-    NValue op_max(const NValue rhs) const;
+    GNValue op_max(const GNValue rhs) const;
 
     /* Return a copy of MIN(this, rhs) */
-    NValue op_min(const NValue rhs) const;
+    GNValue op_min(const GNValue rhs) const;
 
     /* For number NValues, compute new NValues for arithmetic operators */
 /*
@@ -446,7 +439,7 @@ class NValue {
      *
      * Undefined behavior if not an array (cassert fail in debug).
      */
-    void castAndSortAndDedupArrayForInList(const ValueType outputType, std::vector<NValue> &outList) const;
+    //void castAndSortAndDedupArrayForInList(const ValueType outputType, std::vector<NValue> &outList) const;
 
     /*
      * Out must have space for 16 bytes
@@ -520,7 +513,7 @@ class NValue {
             return m_cursor;
         }
 
-        /*
+        *
          * Go through a lot of trouble to make sure that corrupt
          * utf8 data doesn't result in touching uninitialized memory
          * by copying the character data onto the stack.
@@ -528,7 +521,7 @@ class NValue {
          *
         uint32_t extractCodePoint() {
             assert(m_cursor < m_end); // Caller should have tested and handled atEnd() condition
-            /*
+            *
              * Copy the next 6 bytes to a temp buffer and retrieve.
              * We should only get 4 byte code points, and the library
              * should only accept 4 byte code points, but once upon a time there
@@ -539,13 +532,13 @@ class NValue {
             //Copy 6 bytes or until the end
             ::memcpy( nextPotentialCodePoint, m_cursor, std::min( 6L, m_end - m_cursor));
 
-            /*
+            *
              * Extract the code point, find out how many bytes it was
              *
             uint32_t codePoint = utf8::unchecked::next(nextPotentialCodePointIter);
             long int delta = nextPotentialCodePointIter - nextPotentialCodePoint;
 
-            /*
+            *
              * Increment the iterator that was passed in by ref, by the delta
              *
             m_cursor += delta;
@@ -687,7 +680,39 @@ class NValue {
     }
 */
 
+    CUDAH void setMdata(const char *input){
+        memcpy(m_data,input,16);
+    }
+
+    CUDAH void setSourceInlined(bool sourceInlined)
+    {
+        m_sourceInlined = sourceInlined;
+    }
+
+    /**
+     * Set the type of the value that will be stored in this instance.
+     * The last of the 16 bytes of storage allocated in an NValue
+     * is used to store the type
+     */
+    CUDAH void setValueType(ValueType type) {
+        m_valueType = type;
+    }
+
   private:
+
+
+    /**
+     * Get the type of the value. This information is private
+     * to prevent code outside of NValue from branching based on the type of a value.
+     */
+    CUDAH ValueType getValueType() const {
+        return m_valueType;
+    }
+
+
+
+
+
     /*
      * Private methods are private for a reason. Don't expose the raw
      * data so that it can be operated on directly.
@@ -729,28 +754,12 @@ class NValue {
      * Private constructor that initializes storage and the specifies the type of value
      * that will be stored in this instance
      */
-  CUDAH NValue(const ValueType type) {
+  CUDAH GNValue(const ValueType type) {
     ::memset( m_data, 0, 16);
     setValueType(type);
     m_sourceInlined = false;
   }
 
-    /**
-     * Set the type of the value that will be stored in this instance.
-     * The last of the 16 bytes of storage allocated in an NValue
-     * is used to store the type
-     */
-    CUDAH void setValueType(ValueType type) {
-        m_valueType = type;
-    }
-
-    /**
-     * Get the type of the value. This information is private
-     * to prevent code outside of NValue from branching based on the type of a value.
-     */
-    CUDAH ValueType getValueType() const {
-        return m_valueType;
-    }
 
     /**
      * Get the type of the value. This information is private
@@ -761,13 +770,8 @@ class NValue {
         return getTypeName(m_valueType);
     }
   */
-/*
-    CUDAH void setSourceInlined(bool sourceInlined)
-    {
-        m_sourceInlined = sourceInlined;
-    }
-*/
-    CUDAH void tagAsNull() { m_data[13] = OBJECT_NULL_BIT; }
+
+ //CUDAH void tagAsNull() { m_data[13] = OBJECT_NULL_BIT; }
 
     /**
      * An Object is something like a String that has a variable length
@@ -786,13 +790,14 @@ class NValue {
         return *reinterpret_cast<const int32_t *>(&m_data[8]);
     }
 
-
+  /*
     CUDAH int8_t setObjectLength(int32_t length) {
         *reinterpret_cast<int32_t *>(&m_data[8]) = length;
         int8_t lengthLength = getAppropriateObjectLengthLength(length);
         setObjectLengthLength(lengthLength);
         return lengthLength;
     }
+  */
 
     /*
      * Retrieve the number of bytes used by the length preceding value
@@ -807,14 +812,17 @@ class NValue {
      * Set the objects length preceding values length to
      * the specified value
      */
+  /*
     CUDAH void setObjectLengthLength(int8_t length) {
         m_data[12] = length;
     }
+  */
 
     /*
      * Based on the objects actual length value get the length of the
      * length preceding value to the appropriate length
      */
+  /*
     CUDAH static int8_t getAppropriateObjectLengthLength(int32_t length) {
         if (length <= OBJECT_MAX_LENGTH_SHORT_LENGTH) {
             return SHORT_OBJECT_LENGTHLENGTH;
@@ -822,6 +830,7 @@ class NValue {
             return LONG_OBJECT_LENGTHLENGTH;
         }
     }
+  */
 
     /*
      * Set the length preceding value using the short or long representation depending
@@ -861,8 +870,11 @@ class NValue {
             value = *reinterpret_cast<char* const*>(m_data) + getObjectLengthLength();
         }
         else {
+          /*
             StringRef* sref = *reinterpret_cast<StringRef* const*>(m_data);
             value = sref->get() + getObjectLengthLength();
+          */
+          value = NULL;
         }
         return value;
     }
@@ -1021,9 +1033,11 @@ class NValue {
         case VALUE_TYPE_TIMESTAMP:
             return getTimestamp();
         case VALUE_TYPE_DOUBLE:
+/*
             if (getDouble() > (double)INT64_MAX || getDouble() < (double)VOLT_INT64_MIN) {
               //throwCastSQLValueOutOfRangeException<double>(getDouble(), VALUE_TYPE_DOUBLE, VALUE_TYPE_BIGINT);
             }
+*/
             return static_cast<int64_t>(getDouble());
         case VALUE_TYPE_ADDRESS:
             return getBigInt();
@@ -1600,7 +1614,7 @@ class NValue {
   /*
     CUDAH void inlineCopyObject(void *storage, int32_t maxLength, bool isInBytes) const {
         if (isNull()) {
-            /*
+            *
              * The 7th bit of the length preceding value
              * is used to indicate that the object is null.
              *
@@ -1725,13 +1739,8 @@ class NValue {
             return VALUE_COMPARE_GREATERTHAN;
         }
     */
-        if(lhsValue == Nan){
-            return rhsValue == Nan ? VALUE_COMPARE_EQUAL : VALUE_COMPARE_LESSTHAN;
-        }
-        else if(rhsValue==Nan) {
-            return VALUE_COMPARE_GREATERTHAN;
-        }
-        else if (lhsValue > rhsValue) {
+
+        if (lhsValue > rhsValue) {
             return VALUE_COMPARE_GREATERTHAN;
         }
         else if (lhsValue < rhsValue) {
@@ -1742,13 +1751,14 @@ class NValue {
         }
     }
 
-    CUDAH int compareTinyInt (const NValue rhs) const {
+    CUDAH int compareTinyInt (const GNValue rhs) const {
         assert(m_valueType == VALUE_TYPE_TINYINT);
 
         // get the right hand side as a bigint
         if (rhs.getValueType() == VALUE_TYPE_DOUBLE) {
             return compareDoubleValue(static_cast<double>(getTinyInt()), rhs.getDouble());
-        } else if (rhs.getValueType() == VALUE_TYPE_DECIMAL) {
+        } 
+        else if (rhs.getValueType() == VALUE_TYPE_DECIMAL) {
             const TTInt rhsValue = rhs.getDecimal();
             TTInt lhsValue(static_cast<int64_t>(getTinyInt()));
             lhsValue *= kMaxScaleFactor;
@@ -1761,7 +1771,7 @@ class NValue {
         }
     }
 
-    CUDAH int compareSmallInt (const NValue rhs) const {
+    CUDAH int compareSmallInt (const GNValue rhs) const {
         assert(m_valueType == VALUE_TYPE_SMALLINT);
 
         // get the right hand side as a bigint
@@ -1780,7 +1790,7 @@ class NValue {
         }
     }
 
-    CUDAH int compareInteger (const NValue rhs) const {
+    CUDAH int compareInteger (const GNValue rhs) const {
         assert(m_valueType == VALUE_TYPE_INTEGER);
 
         // get the right hand side as a bigint
@@ -1799,7 +1809,7 @@ class NValue {
         }
     }
 
-    CUDAH int compareBigInt (const NValue rhs) const {
+    CUDAH int compareBigInt (const GNValue rhs) const {
         assert(m_valueType == VALUE_TYPE_BIGINT);
 
         // get the right hand side as a bigint
@@ -1818,13 +1828,13 @@ class NValue {
         }
     }
 
-    CUDAH int compareTimestamp (const NValue rhs) const {
+    CUDAH int compareTimestamp (const GNValue rhs) const {
         assert(m_valueType == VALUE_TYPE_TIMESTAMP);
 
         // get the right hand side as a bigint
         if (rhs.getValueType() == VALUE_TYPE_DOUBLE) {
             return compareDoubleValue(static_cast<double>(getTimestamp()), rhs.getDouble());
-        } else if (rhs.getValueType() == VALUE_TYPE_DECIMAL) {
+        }else if (rhs.getValueType() == VALUE_TYPE_DECIMAL) {
             const TTInt rhsValue = rhs.getDecimal();
             TTInt lhsValue(getTimestamp());
             lhsValue *= kMaxScaleFactor;
@@ -1837,8 +1847,7 @@ class NValue {
         }
     }
 
-
-    int compareDoubleValue (const NValue rhs) const {
+    int compareDoubleValue (const GNValue rhs) const {
         assert(m_valueType == VALUE_TYPE_DOUBLE);
 
         const double lhsValue = getDouble();
@@ -1869,6 +1878,7 @@ class NValue {
             break;
         }
         default:
+/*
             char message[128];
             snprintf(message, 128,
                     "Type %s cannot be cast for comparison to type %s",
@@ -1878,12 +1888,14 @@ class NValue {
                     data_exception_most_specific_type_mismatch,
                     message);
             // Not reached
+            */
+            return -3;
         }
 
         return compareDoubleValue(lhsValue, rhsValue);
     }
 
-    CUDAH int compareStringValue (const NValue rhs) const {
+    CUDAH int compareStringValue (const GNValue rhs) const {
         assert(m_valueType == VALUE_TYPE_VARCHAR);
 
         ValueType rhsType = rhs.getValueType();
@@ -1898,7 +1910,7 @@ class NValue {
                     data_exception_most_specific_type_mismatch,
                     message);
           */
-          retunr 0;
+          return -3;
         }
 
         assert(m_valueType == VALUE_TYPE_VARCHAR);
@@ -1926,7 +1938,7 @@ class NValue {
         return VALUE_COMPARE_EQUAL;
     }
 
-    int compareBinaryValue (const NValue rhs) const {
+    int compareBinaryValue (const GNValue rhs) const {
         assert(m_valueType == VALUE_TYPE_VARBINARY);
 
         if (rhs.getValueType() != VALUE_TYPE_VARBINARY) {
@@ -1940,6 +1952,7 @@ class NValue {
                                data_exception_most_specific_type_mismatch,
                                message);
           */
+          return -3;
         }
         const int32_t leftLength = getObjectLength_withoutNull();
         const int32_t rightLength = rhs.getObjectLength_withoutNull();
@@ -1965,12 +1978,13 @@ class NValue {
         return VALUE_COMPARE_EQUAL;
     }
 
-    int compareDecimalValue (const NValue rhs) const {
+    int compareDecimalValue (const GNValue rhs) const {
+
         assert(m_valueType == VALUE_TYPE_DECIMAL);
         switch (rhs.getValueType()) {
         case VALUE_TYPE_DECIMAL:
         {
-            return compareValue<TTInt>(getDecimal(), rhs.getDecimal());
+            return -3;//compareValue<TTInt>(getDecimal(), rhs.getDecimal());
         }
         case VALUE_TYPE_DOUBLE:
         {
@@ -2018,6 +2032,7 @@ class NValue {
         }
         default:
         {
+          /*
             char message[128];
             snprintf(message, 128,
                     "Type %s cannot be cast for comparison to type %s",
@@ -2027,10 +2042,12 @@ class NValue {
                     data_exception_most_specific_type_mismatch,
                     message);
             // Not reached
-            return 0;
+            */
+
         }
         }
     }
+
 
   /*
     NValue opAddBigInts(const int64_t lhs, const int64_t rhs) const {
@@ -2062,30 +2079,30 @@ class NValue {
     NValue opMultiplyBigInts(const int64_t lhs, const int64_t rhs) const {
         bool overflow = false;
         //Scary overflow check from https://www.securecoding.cert.org/confluence/display/cplusplus/INT32-CPP.+Ensure+that+operations+on+signed+integers+do+not+result+in+overflow
-        if (lhs > 0){  /* lhs is positive 
-            if (rhs > 0) {  /* lhs and rhs are positive 
+        if (lhs > 0){  * lhs is positive * 
+            if (rhs > 0) {  * lhs and rhs are positive *
                 if (lhs > (INT64_MAX / rhs)) {
                     overflow= true;
                 }
-            } /* end if lhs and rhs are positive 
-            else { /* lhs positive, rhs non-positive 
+            } * end if lhs and rhs are positive* 
+            else { * lhs positive, rhs non-positive* 
                 if (rhs < (INT64_MIN / lhs)) {
                     overflow = true;
                 }
-            } /* lhs positive, rhs non-positive 
-        } /* end if lhs is positive 
-        else { /* lhs is non-positive 
-            if (rhs > 0) { /* lhs is non-positive, rhs is positive 
+            } * lhs positive, rhs non-positive *
+        } * end if lhs is positive* 
+        else { * lhs is non-positive *
+            if (rhs > 0) { * lhs is non-positive, rhs is positive * 
                 if (lhs < (INT64_MIN / rhs)) {
                     overflow = true;
                 }
-            } /* end if lhs is non-positive, rhs is positive 
-            else { /* lhs and rhs are non-positive 
+            } * end if lhs is non-positive, rhs is positive *
+            else { * lhs and rhs are non-positive *
                 if ( (lhs != 0) && (rhs < (INT64_MAX / lhs))) {
                     overflow = true;
                 }
-            } /* end if lhs and rhs non-positive 
-        } /* end if lhs is non-positive 
+            } * end if lhs and rhs non-positive *
+        } * end if lhs is non-positive *
 
         const int64_t result = lhs * rhs;
 
@@ -2112,7 +2129,7 @@ class NValue {
                                message);
         }
 
-        /**
+        **
          * Because the smallest int64 value is used to represent null (and this is checked for an handled above)
          * it isn't necessary to check for any kind of overflow since none is possible.
          *
@@ -2406,11 +2423,13 @@ class NValue {
         return retval;
     }
   */
-    CUDAH static NValue getNullValue() {
-        NValue retval(VALUE_TYPE_NULL);
+    /*
+    CUDAH static GNValue getNullValue() {
+        GNValue retval(VALUE_TYPE_NULL);
         retval.tagAsNull();
         return retval;
     }
+    */
 
   /*
     static NValue getDecimalValue(TTInt value) {
@@ -2433,7 +2452,7 @@ class NValue {
  * Public constructor that initializes to an NValue that is unusable
  * with other NValues.  Useful for declaring storage for an NValue.
  */
-inline CUDAH NValue::NValue() {
+inline CUDAH GNValue::GNValue() {
     ::memset( m_data, 0, 16);
     setValueType(VALUE_TYPE_INVALID);
     m_sourceInlined = false;
@@ -2443,35 +2462,39 @@ inline CUDAH NValue::NValue() {
  * Retrieve a boolean NValue that is true
  */
 
-inline CUDAH NValue NValue::getTrue() {
-    NValue retval(VALUE_TYPE_BOOLEAN);
+/*
+inline CUDAH GNValue GNValue::getTrue() {
+    GNValue retval(VALUE_TYPE_BOOLEAN);
     retval.getBoolean() = true;
     return retval;
 }
-
+*/
 
 /**
  * Retrieve a boolean NValue that is false
  */
 
-inline CUDAH NValue NValue::getFalse() {
-    NValue retval(VALUE_TYPE_BOOLEAN);
+/*
+inline CUDAH GNValue GNValue::getFalse() {
+    GNValue retval(VALUE_TYPE_BOOLEAN);
     retval.getBoolean() = false;
     return retval;
 }
+*/
 
 /**
  * Returns C++ true if this NValue is a boolean and is true
  * If it is NULL, return false.
  */
 
-
-inline CUDAH bool NValue::isTrue() const {
+/*
+inline CUDAH bool GNValue::isTrue() const {
     if (isBooleanNULL()) {
         return false;
     }
     return getBoolean();
 }
+*/
 
 /**
  * Returns C++ false if this NValue is a boolean and is true
@@ -2490,7 +2513,8 @@ inline bool NValue::isBooleanNULL() const {
     assert(getValueType() == VALUE_TYPE_BOOLEAN);
     return *reinterpret_cast<const int8_t*>(m_data) == INT8_NULL;
 }
-
+*/
+/*
 inline bool NValue::getSourceInlined() const {
     return m_sourceInlined;
 }
@@ -2577,7 +2601,8 @@ inline uint16_t NValue::getTupleStorageSize(const ValueType type) {
  * comparison expression has different logic for null.
  */
 
-inline CUDAH int NValue::compareNull(const NValue rhs) const {
+ /*
+inline CUDAH int GNValue::compareNull(const GNValue rhs) const {
     bool lnull = isNull();
     bool rnull = rhs.isNull();
 
@@ -2592,7 +2617,7 @@ inline CUDAH int NValue::compareNull(const NValue rhs) const {
     }
     return VALUE_COMPARE_INVALID;
 }
-
+ */
 
 /**
  * Assuming no nulls are in comparison.
@@ -2602,28 +2627,28 @@ inline CUDAH int NValue::compareNull(const NValue rhs) const {
  */
 
 
-inline CUDAH int NValue::compare_withoutNull(const NValue rhs) const {
+inline CUDAH int GNValue::compare_withoutNull(const GNValue rhs) const {
     assert(isNull() == false && rhs.isNull() == false);
 
     switch (m_valueType) {
     case VALUE_TYPE_VARCHAR:
-        return compareStringValue(rhs);
+      return 0;//compareStringValue(rhs);
     case VALUE_TYPE_BIGINT:
-        return compareBigInt(rhs);
+      return compareBigInt(rhs);
     case VALUE_TYPE_INTEGER:
-        return compareInteger(rhs);
+      return compareInteger(rhs);
     case VALUE_TYPE_SMALLINT:
-        return compareSmallInt(rhs);
+      return compareSmallInt(rhs);
     case VALUE_TYPE_TINYINT:
-        return compareTinyInt(rhs);
+      return compareTinyInt(rhs);
     case VALUE_TYPE_TIMESTAMP:
-        return compareTimestamp(rhs);
+      return compareTimestamp(rhs);
     case VALUE_TYPE_DOUBLE:
-        return compareDoubleValue(rhs);
+      return compareDoubleValue(rhs);
     case VALUE_TYPE_VARBINARY:
-        return compareBinaryValue(rhs);
+      return compareBinaryValue(rhs);
     case VALUE_TYPE_DECIMAL:
-        return compareDecimalValue(rhs);
+      return compareDecimalValue(rhs);
     default: {
       /*
         throwDynamicSQLException(
@@ -2642,7 +2667,8 @@ inline CUDAH int NValue::compare_withoutNull(const NValue rhs) const {
  * succeed if the values are incompatible.  Avoid use of
  * comparison in favor of op_*.
  */
-inline CUDAH int NValue::compare(const NValue rhs) const {
+/*
+inline CUDAH int GNValue::compare(const GNValue rhs) const {
     int hasNullCompare = compareNull(rhs);
     if (hasNullCompare != VALUE_COMPARE_INVALID) {
         return hasNullCompare;
@@ -2650,6 +2676,7 @@ inline CUDAH int NValue::compare(const NValue rhs) const {
 
     return compare_withoutNull(rhs);
 }
+*/
 
 /**
  * Set this NValue to null.
@@ -2705,9 +2732,10 @@ inline void NValue::setNull() {
  * argument indicates whether the object is stored in the tuple inline.
  */
 
-inline CUDAH NValue NValue::initFromTupleStorage(const void *storage, ValueType type, bool isInlined)
+/*
+inline CUDAH GNValue GNValue::initFromTupleStorage(const void *storage, ValueType type, bool isInlined)
 {
-    NValue retval(type);
+    GNValue retval(type);
     switch (type)
     {
     case VALUE_TYPE_INTEGER:
@@ -2735,10 +2763,10 @@ inline CUDAH NValue NValue::initFromTupleStorage(const void *storage, ValueType 
             const char* inline_data = reinterpret_cast<const char*>(storage);
             *reinterpret_cast<const char**>(retval.m_data) = inline_data;
             retval.setSourceInlined(true);
-            /**
+            **
              * If a string is inlined in its storage location there will be no pointer to
              * check for NULL. The length preceding value must be used instead.
-             */
+             *
             if ((inline_data[0] & OBJECT_NULL_BIT) != 0) {
                 retval.tagAsNull();
                 break;
@@ -2762,7 +2790,7 @@ inline CUDAH NValue NValue::initFromTupleStorage(const void *storage, ValueType 
 
         // Cache the object length in the NValue.
 
-        /* The format for a length preceding value is a 1-byte short representation
+        * The format for a length preceding value is a 1-byte short representation
          * with the the 7th bit used to indicate a null value and the 8th bit used
          * to indicate that this is part of a long representation and that 3 bytes
          * follow. 6 bits are available to represent length for a maximum length
@@ -2771,12 +2799,12 @@ inline CUDAH NValue NValue::initFromTupleStorage(const void *storage, ValueType 
          *
          * The value is converted to network byte order so that the code
          * will always know which byte contains the most signficant digits.
-         */
+         *
 
-        /*
+        *
          * Generated mask that removes the null and continuation bits
          * from a single byte length value
-         */
+         *
         const char mask = ~static_cast<char>(OBJECT_NULL_BIT | OBJECT_CONTINUATION_BIT);
 
         char* data = sref->get();
@@ -2819,10 +2847,11 @@ inline CUDAH NValue NValue::initFromTupleStorage(const void *storage, ValueType 
     default:
       //throwDynamicSQLException("NValue::initFromTupleStorage() invalid column type '%s'",
       //getTypeName(type).c_str());
-                                 /* no break */
+                                 * no break *
     }
     return retval;
 }
+*/
 
 /**
  * Serialize the scalar this NValue represents to the provided
@@ -2956,7 +2985,7 @@ inline CUDAH void NValue::serializeToTupleStorage(void *storage, const bool isIn
         }
         break;
     default:
-      /*
+      *
         char message[128];
         snprintf(message, 128, "NValue::serializeToTupleStorage() unrecognized type '%s'",
                 getTypeName(type).c_str());
@@ -3321,16 +3350,18 @@ inline CUDAH void NValue::allocateObjectFromInlinedValue(Pool* pool = NULL)
     setObjectValue(sref);
     setSourceInlined(false);
 }
+   */
 
-inline CUDAH bool NValue::isNull() const {
+inline CUDAH bool GNValue::isNull() const {
     if (getValueType() == VALUE_TYPE_DECIMAL) {
         TTInt min;
         min.SetMin();
         return getDecimal() == min;
     }
+
     return m_data[13] == OBJECT_NULL_BIT;
 }
-   */
+
 /*
 inline bool NValue::isNaN() const {
     if (getValueType() == VALUE_TYPE_DOUBLE) {
@@ -3368,31 +3399,45 @@ inline CUDAH NValue NValue::op_greaterThanOrEqual(const NValue rhs) const {
 */
 
 // without null comparison
-inline CUDAH NValue NValue::op_equals_withoutNull(const NValue rhs) const {
-    return compare_withoutNull(rhs) == 0 ? getTrue() : getFalse();
+inline CUDAH bool GNValue::op_equals_withoutNull(const GNValue rhs) const {
+  int temp = compare_withoutNull(rhs);
+  if(temp == -3) return false;
+  return temp == 0;
 }
 
-inline CUDAH NValue NValue::op_notEquals_withoutNull(const NValue rhs) const {
-    return compare_withoutNull(rhs) != 0 ? getTrue() : getFalse();
+inline CUDAH bool GNValue::op_notEquals_withoutNull(const GNValue rhs) const {
+  int temp = compare_withoutNull(rhs);
+  if(temp == -3) return false;
+  return temp != 0;
 }
 
-inline CUDAH NValue NValue::op_lessThan_withoutNull(const NValue rhs) const {
-    return compare_withoutNull(rhs) < 0 ? getTrue() : getFalse();
+inline CUDAH bool GNValue::op_lessThan_withoutNull(const GNValue rhs) const {
+  int temp = compare_withoutNull(rhs);
+  if(temp == -3) return false;
+  return temp < 0;
 }
 
-inline CUDAH NValue NValue::op_lessThanOrEqual_withoutNull(const NValue rhs) const {
-    return compare_withoutNull(rhs) <= 0 ? getTrue() : getFalse();
+inline CUDAH bool GNValue::op_lessThanOrEqual_withoutNull(const GNValue rhs) const {
+  int temp = compare_withoutNull(rhs);
+  if(temp == -3) return false;
+  return temp <= 0;
+
 }
 
-inline CUDAH NValue NValue::op_greaterThan_withoutNull(const NValue rhs) const {
-    return compare_withoutNull(rhs) > 0 ? getTrue() : getFalse();
+inline CUDAH bool GNValue::op_greaterThan_withoutNull(const GNValue rhs) const {
+  int temp = compare_withoutNull(rhs);
+  if(temp == -3) return false;
+  return temp > 0;
 }
 
-inline CUDAH NValue NValue::op_greaterThanOrEqual_withoutNull(const NValue rhs) const {
-    return compare_withoutNull(rhs) >= 0 ? getTrue() : getFalse();
+inline CUDAH bool GNValue::op_greaterThanOrEqual_withoutNull(const GNValue rhs) const {
+  int temp = compare_withoutNull(rhs);
+  if(temp == -3) return false;
+  return temp >= 0;
 }
 
-inline CUDAH NValue NValue::op_max(const NValue rhs) const {
+/*
+inline CUDAH GNValue GNValue::op_max(const GNValue rhs) const {
     if (compare(rhs) > 0) {
         return *this;
     } else {
@@ -3407,6 +3452,7 @@ inline CUDAH NValue NValue::op_min(const NValue rhs) const {
         return rhs;
     }
 }
+*/
 
 /*
 inline NValue NValue::getNullValue(ValueType type) {
@@ -3811,7 +3857,7 @@ inline int32_t NValue::murmurHash3() const {
 
 /*
 inline NValue NValue::like(const NValue rhs) const {
-    /*
+    *
      * Validate that all params are VARCHAR
      *
     const ValueType mType = getValueType();
@@ -3846,7 +3892,7 @@ inline NValue NValue::like(const NValue rhs) const {
     assert(valueChars);
     assert(patternChars);
 
-    /*
+    *
      * Because lambdas are for poseurs.
      *
     class Liker {
@@ -3879,7 +3925,7 @@ inline NValue NValue::like(const NValue rhs) const {
                             (nextPatternCodePointAfterPercent == '_') ||
                             (nextPatternCodePointAfterPercent == '%');
 
-                    /*
+                    *
                      * This loop tries to skip as many characters as possible with the % by checking
                      * if the next value character matches the pattern character after the %.
                      *

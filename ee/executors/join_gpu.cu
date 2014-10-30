@@ -2,20 +2,21 @@
 #include <stdint.h>
 #include <cuda.h>
 #include <sys/time.h>
-#include "GPUNIJ.h"
-//#include "../GPUetc/common/tabletuple.h"
+#include "GPUTUPLE.h"
+#include "GPUetc/common/GNValue.h"
+#include "GPUetc/expressions/comparisonexpression.h"
+
+using namespace voltdb;
 
 #define DISTANCE 1
 
-//using namespace gvoltdb;
-
 extern "C" {
 
+  /*
 __device__
-bool eval(TUPLE rt,TUPLE lt){
+bool eval(GNValue le,GNValue re){
 
   //double dis = DISTANCE * DISTANCE;
-  /*
   double temp = 0;
   double temp2 = 0;
   for(uint i = 0; i<VAL_NUM ; i++){
@@ -23,15 +24,16 @@ bool eval(TUPLE rt,TUPLE lt){
     temp += temp2 * temp2;
   }
   return temp < DISTANCE * DISTANCE;
-  */
+
   return rt.val==lt.val;
 
 }
+*/
 
 __global__
 void count(
-          TUPLE *lt,
-          TUPLE *rt,
+          GNValue *lgnv,
+          GNValue *rgnv,
           int *count,
           int ltn,
           int rtn
@@ -46,22 +48,15 @@ void count(
   /*
     transport tuple data to shared memory from global memory
    */
-  /*
-  TableTuple temp = TableTuple();
-  temp.move();
-  */
 
   if(i<ltn){
-    __shared__ TUPLE Tright[BLOCK_SIZE_Y];
+    __shared__ GNValue Tright[BLOCK_SIZE_Y];
     for(uint j=0;threadIdx.x+j*BLOCK_SIZE_X<BLOCK_SIZE_Y&&(threadIdx.x+j*BLOCK_SIZE_X+BLOCK_SIZE_Y*blockIdx.y)<rtn;j++){
-      Tright[threadIdx.x + j*BLOCK_SIZE_X] = rt[threadIdx.x + j*BLOCK_SIZE_X + BLOCK_SIZE_Y * blockIdx.y];
+      Tright[threadIdx.x + j*BLOCK_SIZE_X] = rgnv[threadIdx.x + j*BLOCK_SIZE_X + BLOCK_SIZE_Y * blockIdx.y];
     }    
     __syncthreads();  
 
-    
     /*
-      count loop
-    */
     TUPLE Tleft = lt[i];  
     int rtn_g = rtn;
     uint mcount = 0;
@@ -70,25 +65,26 @@ void count(
         mcount++;
       }
     }
-    count[i + k] = mcount;  
-  }    
+    count[i + k] = mcount;   
+    */
+  }
 
 }
 
 
 __global__ void join(
-          TUPLE *lt,
-          TUPLE *rt,
-          JOIN_TUPLE *p,
+          GNValue *lgnv,
+          GNValue *rgnv,
+          RESULT *p,
           int *count,
           int ltn,
           int rtn
           ) 
-
 {
 
-  int i = blockIdx.x * blockDim.x + threadIdx.x;
+  //int i = blockIdx.x * blockDim.x + threadIdx.x;
 
+  /*
   if(i<ltn){
 
     __shared__ TUPLE Tright[BLOCK_SIZE_Y];
@@ -111,19 +107,13 @@ __global__ void join(
 
         p[writeloc].rkey = Tright[j].key;
         p[writeloc].lkey = Tleft.key;
-        p[writeloc].rval = Tright[j].val;  
-        p[writeloc].lval = Tleft.val;    
-        /*            
-        for(uint valnum=0; valnum<VAL_NUM ; valnum++){
-          p[writeloc].rval[valnum] = Tright[j].val[valnum];  
-          p[writeloc].lval[valnum] = Tleft.val[valnum];                
-        }
-        */
+
         writeloc++;
         
       }
     }
-  }    
+  } 
+*/   
     
 }    
 

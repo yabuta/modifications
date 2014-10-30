@@ -2,12 +2,11 @@
 #include <stdint.h>
 #include <cuda.h>
 #include <sys/time.h>
-#include "GPUNIJ.h"
-//#include "../GPUetc/common/tabletuple.h"
+#include "GPUTUPLE.h"
+
+using namespace voltdb;
 
 #define DISTANCE 1
-
-//using namespace gvoltdb;
 
 extern "C" {
 
@@ -47,10 +46,6 @@ void count(
     transport tuple data to shared memory from global memory
    */
 
-  TableTuple temp = TableTuple();
-  temp.move();
-
-
   if(i<ltn){
     __shared__ TUPLE Tright[BLOCK_SIZE_Y];
     for(uint j=0;threadIdx.x+j*BLOCK_SIZE_X<BLOCK_SIZE_Y&&(threadIdx.x+j*BLOCK_SIZE_X+BLOCK_SIZE_Y*blockIdx.y)<rtn;j++){
@@ -79,7 +74,7 @@ void count(
 __global__ void join(
           TUPLE *lt,
           TUPLE *rt,
-          JOIN_TUPLE *p,
+          RESULT *p,
           int *count,
           int ltn,
           int rtn
@@ -111,9 +106,7 @@ __global__ void join(
 
         p[writeloc].rkey = Tright[j].key;
         p[writeloc].lkey = Tleft.key;
-        p[writeloc].rval = Tright[j].val;  
-        p[writeloc].lval = Tleft.val;    
-        /*            
+         /*            
         for(uint valnum=0; valnum<VAL_NUM ; valnum++){
           p[writeloc].rval[valnum] = Tright[j].val[valnum];  
           p[writeloc].lval[valnum] = Tleft.val[valnum];                

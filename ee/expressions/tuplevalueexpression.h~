@@ -51,7 +51,6 @@
 
 #include <string>
 #include <sstream>
-#include <iostream>
 
 namespace voltdb {
 
@@ -65,7 +64,6 @@ class TupleValueExpression : public AbstractExpression {
 
     virtual voltdb::NValue eval(const TableTuple *tuple1, const TableTuple *tuple2) const {
 
-        std::cout << "tuplevalueexpression" << endl;
         if (tuple_idx == 0) {
             assert(tuple1);
             if ( ! tuple1 ) {

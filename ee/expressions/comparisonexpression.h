@@ -132,9 +132,9 @@ public:
         // [This code is commented out because doing the right thing breaks voltdb atm.
         // We need to re-enable after we can verify that all plans in all configs give the
         // same answer.]
-        /*if (lnv.isNull() || lnv.isNaN() || rnv.isNull() || rnv.isNaN()) {
+        if (lnv.isNull() || lnv.isNaN() || rnv.isNull() || rnv.isNaN()) {
             return NValue::getFalse();
-        }*/
+        }
 
         return compare.cmp(lnv, rnv);
     }
@@ -142,6 +142,25 @@ public:
     std::string debugInfo(const std::string &spacer) const {
         return (spacer + "ComparisonExpression\n");
     }
+
+    /**
+       add for GPU join
+     */
+    inline NValue getLeftNV(const TableTuple *tuple1, const TableTuple *tuple2) const{
+        return static_cast<TupleValueExpression *>(m_left)->eval(tuple1,tuple2);
+    }
+    inline NValue getRightNV(const TableTuple *tuple1, const TableTuple *tuple2) const{
+        return static_cast<TupleValueExpression *>(m_right)->eval(tuple1,tuple2);
+    }
+
+    inline int getLeftTupleId(){
+        return static_cast<TupleValueExpression *>(m_left)->getTupleId();
+    }
+
+    inline int getRightTupleId(){
+        return static_cast<TupleValueExpression *>(m_right)->getTupleId();
+    }
+
 
 private:
     AbstractExpression *m_left;
