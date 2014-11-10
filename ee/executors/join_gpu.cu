@@ -55,6 +55,12 @@ void iicount(
     }
     count[i + k] = mcount;
   }
+
+  
+  if(i+k==blockDim.x*gridDim.x*gridDim.y-1){
+    count[i+k+1]=0;
+  }
+
 }
 
 
@@ -124,7 +130,11 @@ void oicount(
         mcount++;
       }
     }
-    count[i + k] = mcount;
+    count[i+k] = mcount;
+  }
+  
+  if(i+k==blockDim.x*gridDim.x*gridDim.y-1){
+    count[i+k+1]=0;
   }
 }
 

@@ -254,7 +254,7 @@ __global__ void transport_kernel(
 )
 {
 
-  d_Data[0] = d_Src[loc-1];
+  d_Data[0] = d_Src[loc];
 
 
 }

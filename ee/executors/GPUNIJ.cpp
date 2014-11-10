@@ -190,10 +190,10 @@ void GPUNIJ::join()
       block_y = rrs < BLOCK_SIZE_Y ? rrs : BLOCK_SIZE_Y;      
       grid_x = lls / block_x;
       if (lls % block_x != 0)
-        grid_x++;      
+        grid_x++;
       grid_y = rrs / block_y;
       if (rrs % block_y != 0)
-        grid_y++;      
+        grid_y++;
       block_y = 1;
 
       printf("\nStarting...\nll = %d\trr = %d\tlls = %d\trrs = %d\n",ll,rr,lls,rrs);
@@ -297,7 +297,7 @@ void GPUNIJ::join()
         jt_size = 0;
       }else{
         jt = (RESULT *)malloc(jt_size*sizeof(RESULT));
-        res = cuMemAlloc(&jt_dev, jt_size * sizeof(RESULT));
+        res = cuMemAlloc(&jt_dev, jt_size*sizeof(RESULT));
         if (res != CUDA_SUCCESS) {
           printf("cuMemAlloc (join) failed\n");
           exit(1);
