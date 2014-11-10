@@ -258,7 +258,7 @@ def buildMakefile(CTX):
 
 
     SCAN_PATH = "../../src/ee/executors/"
-    GPUPATH = " ../../src/ee/executors/GPUNIJ.h ../../src/ee/executors/GPUTUPLE.h ../../src/ee/GPUetc/common/GNValue.h ../../src/ee/GPUetc/expressions/comparisonexpression.h"
+    GPUPATH = " ../../src/ee/executors/GPUNIJ.h ../../src/ee/executors/GPUTUPLE.h ../../src/ee/GPUetc/common/GNValue.h ../../src/ee/GPUetc/expressions/Gcomparisonexpression.h"
     makefile.write("objects/executors/scan.co:../../src/ee/executors/scan.cu %s\n"%GPUPATH)
     makefile.write("\tnvcc $(INCLUDE) -Xcompiler '-fPIC' -arch sm_35 -c -o objects/executors/scan.co %sscan.cu\n"%(SCAN_PATH))    
     makefile.write("objects/executors/join_gpu.cubin:../../src/ee/executors/join_gpu.cu %s\n"%GPUPATH)

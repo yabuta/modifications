@@ -12,33 +12,18 @@
 #include "GPUTUPLE.h"
 #include "GPUNIJ.h"
 #include "scan_common.h"
-//#include "expressions/abstractexpression.h"
-//#include "expressions/comparisonexpression.h"
-//#include "common/types.h"
+#include "common/types.h"
 #include "GPUetc/common/GNValue.h"
-#include "GPUetc/expressions/comparisonexpression.h"
+#include "GPUetc/expressions/Gcomparisonexpression.h"
 
-
-//main引数を受け取るグローバル変数
-
-/*
-CUresult res;
-CUdevice dev;
-CUcontext ctx;
-CUfunction function,c_function;
-CUmodule module,c_module;
-CUdeviceptr lt_dev, rt_dev, jt_dev,count_dev, pre_dev;
-CUdeviceptr ltn_dev, rtn_dev;
-unsigned int block_x, block_y, grid_x, grid_y;
-*/
 
 using namespace voltdb;
 
 GPUNIJ::GPUNIJ(){
 
   jt = NULL;
+  total = 0;
   PART = 524288;
-
 
   char fname[256];
   const char *path="/home/yabuta/voltdb/voltdb";
@@ -77,22 +62,26 @@ GPUNIJ::GPUNIJ(){
     printf("cuModuleLoad(join) failed\n");
     exit(1);
   }
-  res = cuModuleGetFunction(&function, module, "join");
+  res = cuModuleGetFunction(&iifunction, module, "iijoin");
   if (res != CUDA_SUCCESS) {
-    printf("cuModuleGetFunction() failed\n");
+    printf("cuModuleGetFunction(iijoin) failed\n");
     exit(1);
   }
-  res = cuModuleGetFunction(&c_function, module, "count");
+  res = cuModuleGetFunction(&iic_function, module, "iicount");
   if (res != CUDA_SUCCESS) {
-    printf("cuModuleGetFunction() failed\n");
+    printf("cuModuleGetFunction(iicount) failed\n");
     exit(1);
   }
-
-
-
-
-
-
+  res = cuModuleGetFunction(&oifunction, module, "oijoin");
+  if (res != CUDA_SUCCESS) {
+    printf("cuModuleGetFunction(oijoin) failed\n");
+    exit(1);
+  }
+  res = cuModuleGetFunction(&oic_function, module, "oicount");
+  if (res != CUDA_SUCCESS) {
+    printf("cuModuleGetFunction(oicount) failed\n");
+    exit(1);
+  }
 }
 
 
@@ -134,28 +123,14 @@ uint GPUNIJ::iDivUp(uint dividend, uint divisor)
 
 
 //HrightとHleftをそれぞれ比較する。GPUで並列化するforループもここにあるもので行う。
-int GPUNIJ::join()
+void GPUNIJ::join()
 {
 
-  int i, j, idx;
-  //int *count;//maybe long long int is better
+  //int i, j;
   uint jt_size,gpu_size;
-  uint total = 0;
   CUdeviceptr lt_dev, rt_dev, jt_dev,count_dev, pre_dev;
   CUdeviceptr ltn_dev, rtn_dev;
   unsigned int block_x, block_y, grid_x, grid_y;
-
-  /*
-  for(int i=0; i<left ; i++){
-    printf("lt[%d] = %d\n",i,lt[i].val);
-
-  }
-
-  for(int i=0; i<right ; i++){
-    printf("rt[%d] = %d\n",i,rt[i].val);
-
-  }
-  */
 
 
   /************** block_x * block_y is decided by BLOCK_SIZE. **************/
@@ -198,13 +173,10 @@ int GPUNIJ::join()
     exit(1);
   }
 
-  
   /********************** upload lt , rt and count***********************/
 
   for(uint ll = 0; ll < left ; ll += PART){
     for(uint rr = 0; rr < right ; rr += PART){
-
-      printf("ok\n");
 
       uint lls=PART,rrs=PART;
       if((ll+PART) >= left){
@@ -244,34 +216,63 @@ int GPUNIJ::join()
       void *count_args[]={    
         (void *)&lt_dev,
         (void *)&rt_dev,
+        (void *)expression,
         (void *)&count_dev,
         (void *)&lls,
         (void *)&rrs        
       };
+
+
+      if(conditionflag = II){
+        res = cuLaunchKernel(
+                             iic_function,    // CUfunction f
+                             grid_x,        // gridDimX
+                             grid_y,        // gridDimY
+                             1,             // gridDimZ
+                             block_x,       // blockDimX
+                             block_y,       // blockDimY
+                             1,             // blockDimZ
+                             0,             // sharedMemBytes
+                             NULL,          // hStream
+                             count_args,   // keunelParams
+                             NULL           // extra
+                             );
+        if(res != CUDA_SUCCESS) {
+          printf("cuLaunchKernel(count) failed: res = %lu\n", (unsigned long int)res);
+          exit(1);
+        }      
       
-      res = cuLaunchKernel(
-                           c_function,    // CUfunction f
-                           grid_x,        // gridDimX
-                           grid_y,        // gridDimY
-                           1,             // gridDimZ
-                           block_x,       // blockDimX
-                           block_y,       // blockDimY
-                           1,             // blockDimZ
-                           0,             // sharedMemBytes
-                           NULL,          // hStream
-                           count_args,   // keunelParams
-                           NULL           // extra
-                           );
-      if(res != CUDA_SUCCESS) {
-        printf("cuLaunchKernel(count) failed: res = %lu\n", (unsigned long int)res);
-        exit(1);
-      }      
+        res = cuCtxSynchronize();
+        if(res != CUDA_SUCCESS) {
+          printf("cuCtxSynchronize(count) failed: res = %lu\n", (unsigned long int)res);
+          exit(1);
+        }  
+      }else{
+        res = cuLaunchKernel(
+                             oic_function,    // CUfunction f
+                             grid_x,        // gridDimX
+                             grid_y,        // gridDimY
+                             1,             // gridDimZ
+                             block_x,       // blockDimX
+                             block_y,       // blockDimY
+                             1,             // blockDimZ
+                             0,             // sharedMemBytes
+                             NULL,          // hStream
+                             count_args,   // keunelParams
+                             NULL           // extra
+                             );
+        if(res != CUDA_SUCCESS) {
+          printf("cuLaunchKernel(count) failed: res = %lu\n", (unsigned long int)res);
+          exit(1);
+        }      
       
-      res = cuCtxSynchronize();
-      if(res != CUDA_SUCCESS) {
-        printf("cuCtxSynchronize(count) failed: res = %lu\n", (unsigned long int)res);
-        exit(1);
-      }  
+        res = cuCtxSynchronize();
+        if(res != CUDA_SUCCESS) {
+          printf("cuCtxSynchronize(count) failed: res = %lu\n", (unsigned long int)res);
+          exit(1);
+        }  
+
+      }
 
       /**************************** prefix sum *************************************/
       if(!(presum(&count_dev,(uint)gpu_size))){
@@ -292,11 +293,10 @@ int GPUNIJ::join()
       ************************************************************************/
 
       if(jt_size<=0){
-        //printf("no tuple is matched.\n");
         total += jt_size;
-        //printf("End...\n jt_size = %d\ttotal = %d\n",jt_size,total);
         jt_size = 0;
       }else{
+        jt = (RESULT *)malloc(jt_size*sizeof(RESULT));
         res = cuMemAlloc(&jt_dev, jt_size * sizeof(RESULT));
         if (res != CUDA_SUCCESS) {
           printf("cuMemAlloc (join) failed\n");
@@ -307,36 +307,62 @@ int GPUNIJ::join()
           (void *)&lt_dev,
           (void *)&rt_dev,
           (void *)&jt_dev,
+          (void *)expression,
           (void *)&count_dev,
           (void *)&lls,
           (void *)&rrs,    
         };
-      
-        //グリッド・ブロックの指定、変数の指定、カーネルの実行を行う
-        res = cuLaunchKernel(
-                             function,      // CUfunction f
-                             grid_x,        // gridDimX
-                             grid_y,        // gridDimY
-                             1,             // gridDimZ
-                             block_x,       // blockDimX
-                             block_y,       // blockDimY
-                             1,             // blockDimZ
-                             0,             // sharedMemBytes
-                             NULL,          // hStream
-                             kernel_args,   // keunelParams
-                             NULL           // extra
-                             );
-        if(res != CUDA_SUCCESS) {
-          printf("cuLaunchKernel() failed: res = %lu\n", (unsigned long int)res);
-          exit(1);
-        }  
+
+        if(conditionflag = II){
+          res = cuLaunchKernel(
+                               iifunction,      // CUfunction f
+                               grid_x,        // gridDimX
+                               grid_y,        // gridDimY
+                               1,             // gridDimZ
+                               block_x,       // blockDimX
+                               block_y,       // blockDimY
+                               1,             // blockDimZ
+                               0,             // sharedMemBytes
+                               NULL,          // hStream
+                               kernel_args,   // keunelParams
+                               NULL           // extra
+                               );
+          if(res != CUDA_SUCCESS) {
+            printf("cuLaunchKernel() failed: res = %lu\n", (unsigned long int)res);
+            exit(1);
+          }  
         
-        res = cuCtxSynchronize();
-        if(res != CUDA_SUCCESS) {
-          printf("cuCtxSynchronize() failed: res = %lu\n", (unsigned long int)res);
-          exit(1);
-        }  
+          res = cuCtxSynchronize();
+          if(res != CUDA_SUCCESS) {
+            printf("cuCtxSynchronize() failed: res = %lu\n", (unsigned long int)res);
+            exit(1);
+          }  
+        }else{
+          res = cuLaunchKernel(
+                               oifunction,      // CUfunction f
+                               grid_x,        // gridDimX
+                               grid_y,        // gridDimY
+                               1,             // gridDimZ
+                               block_x,       // blockDimX
+                               block_y,       // blockDimY
+                               1,             // blockDimZ
+                               0,             // sharedMemBytes
+                               NULL,          // hStream
+                               kernel_args,   // keunelParams
+                               NULL           // extra
+                               );
+          if(res != CUDA_SUCCESS) {
+            printf("cuLaunchKernel() failed: res = %lu\n", (unsigned long int)res);
+            exit(1);
+          }  
         
+          res = cuCtxSynchronize();
+          if(res != CUDA_SUCCESS) {
+            printf("cuCtxSynchronize() failed: res = %lu\n", (unsigned long int)res);
+            exit(1);
+          }  
+
+        }
         res = cuMemcpyDtoH(&(jt[total]), jt_dev, jt_size * sizeof(RESULT));
         if (res != CUDA_SUCCESS) {
           printf("cuMemcpyDtoH (jt) failed: res = %lu\n", (unsigned long)res);
@@ -373,22 +399,6 @@ int GPUNIJ::join()
     printf("cuMemFree (count) failed: res = %lu\n", (unsigned long)res);
     exit(1);
   }
-
-  /********************************************************************/
-
-
-  /*
-  for(i=0;i<3&&i<JT_SIZE;i++){
-    printf("[%d]:left %8d \t:right: %8d\n",i,jt[i].lkey,jt[i].rkey);
-    printf("join[%d]:left = %8d\tright = %8d\n",j,jt[i].lval,jt[i].rval);
-    printf("\n");
-
-  }
-  */
-
-  /****************************************************************************/
-
-  return total;
 
 }
 

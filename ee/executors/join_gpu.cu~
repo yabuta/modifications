@@ -3,6 +3,8 @@
 #include <cuda.h>
 #include <sys/time.h>
 #include "GPUTUPLE.h"
+#include "GPUetc/common/GNValue.h"
+#include "GPUetc/expressions/Gcomparisonexpression.h"
 
 using namespace voltdb;
 
@@ -10,11 +12,11 @@ using namespace voltdb;
 
 extern "C" {
 
+  /*
 __device__
-bool eval(TUPLE rt,TUPLE lt){
+bool eval(GNValue le,GNValue re){
 
   //double dis = DISTANCE * DISTANCE;
-  /*
   double temp = 0;
   double temp2 = 0;
   for(uint i = 0; i<VAL_NUM ; i++){
@@ -22,15 +24,17 @@ bool eval(TUPLE rt,TUPLE lt){
     temp += temp2 * temp2;
   }
   return temp < DISTANCE * DISTANCE;
-  */
+
   return rt.val==lt.val;
 
 }
+*/
 
 __global__
 void count(
-          TUPLE *lt,
-          TUPLE *rt,
+          GNValue *lgnv,
+          GNValue *rgnv,
+          GComparisonExpression ex,
           int *count,
           int ltn,
           int rtn
@@ -47,16 +51,26 @@ void count(
    */
 
   if(i<ltn){
-    __shared__ TUPLE Tright[BLOCK_SIZE_Y];
+    __shared__ GNValue trgnv[BLOCK_SIZE_Y];
     for(uint j=0;threadIdx.x+j*BLOCK_SIZE_X<BLOCK_SIZE_Y&&(threadIdx.x+j*BLOCK_SIZE_X+BLOCK_SIZE_Y*blockIdx.y)<rtn;j++){
-      Tright[threadIdx.x + j*BLOCK_SIZE_X] = rt[threadIdx.x + j*BLOCK_SIZE_X + BLOCK_SIZE_Y * blockIdx.y];
+      trgnv[threadIdx.x + j*BLOCK_SIZE_X] = rgnv[threadIdx.x + j*BLOCK_SIZE_X + BLOCK_SIZE_Y * blockIdx.y];
     }    
     __syncthreads();  
 
-    
+
+    GNValue tlgnv = lgnv[i];
+    int rtn_g = rtn;
+    uint mcount = 0;
+
+    for(uint j = 0; j<BLOCK_SIZE_Y &&((j+BLOCK_SIZE_Y*blockIdx.y)<rtn_g);j++){
+      if(ex.eval(tlgnv,trgnv[j])) {
+        mcount++;
+      }
+    }
+
+    count[i + k] = mcount;   
+
     /*
-      count loop
-    */
     TUPLE Tleft = lt[i];  
     int rtn_g = rtn;
     uint mcount = 0;
@@ -65,58 +79,48 @@ void count(
         mcount++;
       }
     }
-    count[i + k] = mcount;  
-  }    
+    count[i + k] = mcount;   
+    */
+  }
 
 }
 
 
 __global__ void join(
-          TUPLE *lt,
-          TUPLE *rt,
+          GNValue *lgnv,
+          GNValue *rgnv,
           RESULT *p,
+          GComparisonExpression ex,
           int *count,
           int ltn,
           int rtn
           ) 
-
 {
 
   int i = blockIdx.x * blockDim.x + threadIdx.x;
 
   if(i<ltn){
 
-    __shared__ TUPLE Tright[BLOCK_SIZE_Y];
+    __shared__ GNValue trgnv[BLOCK_SIZE_Y];
     for(uint j=0;threadIdx.x+j*BLOCK_SIZE_X<BLOCK_SIZE_Y&&(threadIdx.x+j*BLOCK_SIZE_X+BLOCK_SIZE_Y*blockIdx.y)<rtn;j++){
-      Tright[threadIdx.x + j*BLOCK_SIZE_X] = rt[threadIdx.x + j*BLOCK_SIZE_X + BLOCK_SIZE_Y * blockIdx.y];
-    }
-    __syncthreads();
+      trgnv[threadIdx.x + j*BLOCK_SIZE_X] = rgnv[threadIdx.x + j*BLOCK_SIZE_X + BLOCK_SIZE_Y * blockIdx.y];
+    }    
+    __syncthreads();  
 
-
-    TUPLE Tleft = lt[i];
-
-    //the first write location
-
-    int writeloc = count[i + blockIdx.y*blockDim.x*gridDim.x];
+    GNValue tlgnv = lgnv[i];
     int rtn_g = rtn;
+    int writeloc = count[i+blockIdx.y*blockDim.x*gridDim.x];
 
     for(uint j = 0; j<BLOCK_SIZE_Y &&((j+BLOCK_SIZE_Y*blockIdx.y)<rtn_g);j++){
- 
-      if(eval(Tright[j],Tleft)) {
+      if(ex.eval(tlgnv,trgnv[j])) {
 
-        p[writeloc].rkey = Tright[j].key;
-        p[writeloc].lkey = Tleft.key;
-         /*            
-        for(uint valnum=0; valnum<VAL_NUM ; valnum++){
-          p[writeloc].rval[valnum] = Tright[j].val[valnum];  
-          p[writeloc].lval[valnum] = Tleft.val[valnum];                
-        }
-        */
+        p[writeloc].lkey = i;
+        p[writeloc].rkey = blockIdx.y*BLOCK_SIZE_Y+threadIdx.y;
         writeloc++;
-        
       }
     }
-  }    
+
+  } 
     
 }    
 

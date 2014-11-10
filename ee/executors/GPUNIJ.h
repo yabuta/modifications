@@ -12,11 +12,11 @@ GPUで動かすため配列のほうが向いていると思ったので
 #include <cuda.h>
 #include "GPUTUPLE.h"
 #include "GPUetc/common/GNValue.h"
+#include "GPUetc/expressions/Gcomparisonexpression.h"
 
 using namespace voltdb;
 
-
-class GPUNIJ {
+class GPUNIJ{
 
 public:
 
@@ -26,19 +26,32 @@ public:
     GPUNIJ();
     ~GPUNIJ();
     
-    int join();
+    void join();
 
-    void setTableData(GNValue *lGNV,GNValue *rGNV,int outerSize,int innerSize){
+
+/**
+   outer tuple = left
+   inner tuple = right
+ */
+
+    void setTableData(GNValue *oGNV,GNValue *iGNV,int outerSize,int innerSize,int confl){
         
-        left_GNV = lGNV;
-        right_GNV = rGNV;
+        left_GNV = oGNV;
+        right_GNV = iGNV;
         left = outerSize;
         right = innerSize;
-
+        conditionflag = confl;
+    }
+    void setExpression(GComparisonExpression *GC){
+        expression = GC;        
     }
 
-    RESULT *getJoinResult(){
+    RESULT *getResult(){
         return jt;
+    }
+
+    int getResultSize(){
+        return total;
     }
 
 
@@ -47,18 +60,21 @@ private:
 //for partition execution
    
     RESULT *jt;
+    int total;
 
     int left,right;
-
+    int conditionflag;
     GNValue *left_GNV;
     GNValue *right_GNV;
+
+    GComparisonExpression *expression;
 
     int PART;
 
     CUresult res;
     CUdevice dev;
     CUcontext ctx;
-    CUfunction function,c_function;
+    CUfunction iifunction,iic_function,oifunction,oic_function;
     CUmodule module,c_module;
     
     void printDiff(struct timeval begin, struct timeval end);

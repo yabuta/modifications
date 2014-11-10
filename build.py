@@ -112,7 +112,7 @@ if CTX.LEVEL == "DEBUG":
     CTX.OUTPUT_PREFIX = "obj/debug"
 
 if CTX.LEVEL == "RELEASE":
-    CTX.CPPFLAGS += " -g3 -O3 -mmmx -msse -msse2 -msse3 -DNDEBUG -DVOLT_LOG_LEVEL=500"
+    CTX.CPPFLAGS += " -g -g3 -O3 -mmmx -msse -msse2 -msse3 -DNDEBUG -DVOLT_LOG_LEVEL=500"
     CTX.OUTPUT_PREFIX = "obj/release"
 
 # build in parallel directory instead of subdir so that relative paths work
