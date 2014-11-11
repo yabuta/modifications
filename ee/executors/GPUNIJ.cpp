@@ -23,7 +23,6 @@ GPUNIJ::GPUNIJ(){
 
   jt = NULL;
   total = 0;
-  PART = 524288;
 
   char fname[256];
   const char *path="/home/yabuta/voltdb/voltdb";
@@ -145,7 +144,7 @@ void GPUNIJ::join()
     grid_y++;
   block_y = 1;
 
-  gpu_size = grid_x * grid_y * block_x * block_y;
+  gpu_size = grid_x * grid_y * block_x * block_y+1;
   if(gpu_size>MAX_LARGE_ARRAY_SIZE){
     gpu_size = MAX_LARGE_ARRAY_SIZE * iDivUp(gpu_size,MAX_LARGE_ARRAY_SIZE);
   }else if(gpu_size > MAX_SHORT_ARRAY_SIZE){
@@ -198,7 +197,7 @@ void GPUNIJ::join()
 
       printf("\nStarting...\nll = %d\trr = %d\tlls = %d\trrs = %d\n",ll,rr,lls,rrs);
       printf("grid_x = %d\tgrid_y = %d\tblock_x = %d\tblock_y = %d\n",grid_x,grid_y,block_x,block_y);
-      gpu_size = grid_x * grid_y * block_x * block_y+1;
+      gpu_size = grid_x * grid_y * block_x * block_y + 1;
       printf("gpu_size = %d\n",gpu_size);
 
 
@@ -275,13 +274,13 @@ void GPUNIJ::join()
       }
 
       /**************************** prefix sum *************************************/
-      if(!(presum(&count_dev,(uint)gpu_size))){
+      if(!(presum(&count_dev,gpu_size))){
         printf("count scan error.\n");
         exit(1);
       }
       /********************************************************************/      
 
-      if(!transport(count_dev,(uint)gpu_size,&jt_size)){
+      if(!transport(count_dev,gpu_size,&jt_size)){
         printf("transport error.\n");
         exit(1);
       }
@@ -302,7 +301,7 @@ void GPUNIJ::join()
           printf("cuMemAlloc (join) failed\n");
           exit(1);
         }      
-        
+
         void *kernel_args[]={
           (void *)&lt_dev,
           (void *)&rt_dev,
@@ -378,6 +377,7 @@ void GPUNIJ::join()
     
 
   }
+
 
   /***************************************************************/
 

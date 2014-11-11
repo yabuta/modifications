@@ -112,9 +112,40 @@ void setGNValue(GNValue *gn,NValue NV){
   gn->setSourceInlined(NV.getSourceInlinedForGPU());
   gn->setValueType(NV.getValueTypeForGPU());
   
+}
 
+void swap(RESULT *a,RESULT *b)
+{
+  RESULT temp;
+  temp = *a;
+  *a=*b;
+  *b=temp;
+}
+
+void qsort(RESULT *jt,int p,int q)
+{
+  int i,j;
+  int pivot;
+
+  i = p;
+  j = q;
+
+  pivot = jt[(p+q)/2].lkey;
+
+  while(1){
+    while(jt[i].lkey < pivot) i++;
+    while(pivot < jt[j].lkey) j--;
+    if(i>=j) break;
+    swap(&jt[i],&jt[j]);
+    i++;
+    j--;
+  }
+  if(p < i-1) qsort(jt,p,i-1);
+  if(j+1 < q) qsort(jt,j+1,q);
 
 }
+
+
 
 bool NestLoopExecutor::p_execute(const NValueArray &params) {
     VOLT_DEBUG("executing NestLoop...");
@@ -207,7 +238,7 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
     printf("leftsize:%d\trightsize:%d\n",outerSize,innerSize);
 
     GNValue *left_GNV=NULL,*right_GNV=NULL;
-    char **tmpouter_tuple=NULL,**tmpinner_tuple=NULL;
+    TableTuple *tmpouter_tuple=NULL,*tmpinner_tuple=NULL;
     bool outerread = false,innerread = false;
 
     GComparisonExpression GC(et);
@@ -252,6 +283,8 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
     default:
       findexpressionData = false;
     }
+
+    printf("tuple id = %d\t%d\n",lefttupleId,righttupleId);
 
     /**
        get left NValue of condition
@@ -451,9 +484,9 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
       int j=0;
 
       if(!outerread){
-        tmpouter_tuple = (char **)malloc(outerSize*sizeof(char *));
+        tmpouter_tuple = (TableTuple *)malloc(outerSize*sizeof(TableTuple));
         while(iterator0.next(outer_tuple)){
-          tmpouter_tuple[j] = outer_tuple.address();
+          tmpouter_tuple[j] = outer_tuple;
           j++;
         }
         printf("outertable size = %d\n",j);
@@ -461,9 +494,9 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
 
       j=0;
       if(!innerread){
-        tmpinner_tuple = (char **)malloc(innerSize*sizeof(char *));
+        tmpinner_tuple = (TableTuple *)malloc(innerSize*sizeof(TableTuple));
         while(iterator1.next(inner_tuple)){
-          tmpinner_tuple[j] = inner_tuple.address();
+          tmpinner_tuple[j] = inner_tuple;
           j++;
         }
         printf("innertable size = %d\n",j);
@@ -475,21 +508,21 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
 
       if(expressionmatch==true){
 
-        GPUNIJ gn;
+        GPUNIJ *gn = new GPUNIJ();
       
 
         if(lefttupleId==righttupleId){
           if(lefttupleId == 0){
-            gn.setTableData(left_GNV,right_GNV,innerSize,outerSize,II);
+            gn->setTableData(left_GNV,right_GNV,innerSize,outerSize,II);
           }else{
-            gn.setTableData(left_GNV,right_GNV,outerSize,innerSize,II);
+            gn->setTableData(left_GNV,right_GNV,outerSize,innerSize,II);
           }
-          gn.setExpression(&GC);
+          gn->setExpression(&GC);
 
-          gn.join();
+          gn->join();
 
-          RESULT *jt = gn.getResult();
-          int jt_size = gn.getResultSize();
+          RESULT *jt = gn->getResult();
+          int jt_size = gn->getResultSize();
 
           /*
           iterator0 = outer_table->iteratorDeletingAsWeGo();
@@ -514,13 +547,13 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
 
           for(int i=0; i < jt_size ; i++){
             if(lefttupleId==0){
-              outer_tuple.move(tmpouter_tuple[jt[i].rkey]);
-              inner_tuple.move(tmpinner_tuple[jt[i].lkey]);
+              outer_tuple = tmpouter_tuple[jt[i].rkey];
+              inner_tuple = tmpinner_tuple[jt[i].lkey];
               join_tuple.setNValues(0, outer_tuple, 0, outer_cols);
               join_tuple.setNValues(outer_cols, inner_tuple, 0, inner_cols);
             }else{
-              outer_tuple.move(tmpouter_tuple[jt[i].lkey]);
-              inner_tuple.move(tmpinner_tuple[jt[i].rkey]);
+              outer_tuple = tmpouter_tuple[jt[i].lkey];
+              inner_tuple = tmpinner_tuple[jt[i].rkey];
               join_tuple.setNValues(0, outer_tuple, 0, outer_cols);
               join_tuple.setNValues(outer_cols, inner_tuple, 0, inner_cols);
             }
@@ -536,27 +569,36 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
           }
         }else{
           if(lefttupleId == 0){
-            gn.setTableData(left_GNV,right_GNV,outerSize,innerSize,OI);
+            gn->setTableData(left_GNV,right_GNV,outerSize,innerSize,OI);
           }else{
-            gn.setTableData(right_GNV,left_GNV,outerSize,innerSize,OI);
+            gn->setTableData(right_GNV,left_GNV,outerSize,innerSize,OI);
           }
-          gn.setExpression(&GC);
+          gn->setExpression(&GC);
 
-          gn.join();
+          gn->join();
 
-          RESULT *jt = gn.getResult();
-          int jt_size = gn.getResultSize();
+          RESULT *jt = gn->getResult();
+          int jt_size = gn->getResultSize();
 
-          
+          for(int i=0; i<jt_size ; i++){
+            if(jt[i].lkey == 0){
+              printf("%d %d\n",i,jt[i].rkey);
+            }
+          }
+
+          printf("ok1\n");
+          qsort(jt,0,jt_size-1);
+          printf("ok2\n");          
 
           for(int i=0; i < jt_size && (i<limit||limit==-1) ; i++){
-            outer_tuple.move(tmpouter_tuple[jt[i].lkey]);
-            inner_tuple.move(tmpinner_tuple[jt[i].rkey]);
+            
+            outer_tuple = tmpouter_tuple[jt[i].lkey];
+            inner_tuple = tmpinner_tuple[jt[i].rkey];
             join_tuple.setNValues(0, outer_tuple, 0, outer_cols);
             join_tuple.setNValues(outer_cols, inner_tuple, 0, inner_cols);
-
+            
             m_tmpOutputTable->insertTempTuple(join_tuple);
-
+            
 
             /*
               if (m_aggExec != NULL) {
@@ -569,9 +611,10 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
             */
 
           }
-
+          printf("ok3\n");          
 
         }
+        delete gn;
       }
       free(tmpouter_tuple);
       free(tmpinner_tuple);

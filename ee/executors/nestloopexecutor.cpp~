@@ -253,6 +253,8 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
       findexpressionData = false;
     }
 
+    printf("tuple id = %d\t%d\n",lefttupleId,righttupleId);
+
     /**
        get left NValue of condition
     */
@@ -445,8 +447,7 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
 
       }
 
-
-x      
+      
       iterator0 = outer_table->iterator();
       iterator1 = inner_table->iterator();
       int j=0;
@@ -454,7 +455,7 @@ x
       if(!outerread){
         tmpouter_tuple = (char **)malloc(outerSize*sizeof(char *));
         while(iterator0.next(outer_tuple)){
-          tmpinner_tuple[j] = inner_tuple.address();
+          tmpouter_tuple[j] = outer_tuple.address();
           j++;
         }
         printf("outertable size = %d\n",j);
@@ -464,7 +465,7 @@ x
       if(!innerread){
         tmpinner_tuple = (char **)malloc(innerSize*sizeof(char *));
         while(iterator1.next(inner_tuple)){
-          tmpinner_tuple[j] = outer_inner.address();
+          tmpinner_tuple[j] = inner_tuple.address();
           j++;
         }
         printf("innertable size = %d\n",j);

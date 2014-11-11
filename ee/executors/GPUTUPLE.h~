@@ -8,6 +8,11 @@ namespace voltdb{
 
 #define SELECTIVITY 1000000000
 
+    enum CONDITIONFLAG{
+        II,
+        OI,
+    };
+    
 
 typedef struct _TUPLE {
     int key;

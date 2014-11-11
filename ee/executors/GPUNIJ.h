@@ -41,6 +41,12 @@ public:
         left = outerSize;
         right = innerSize;
         conditionflag = confl;
+
+        for(int i=32768 ; i<262144 ; i = i*2){
+            if(right<=i) PART = i;
+        }
+        printf("PART : %d\n",PART);
+
     }
     void setExpression(GComparisonExpression *GC){
         expression = GC;        

@@ -23,7 +23,6 @@ GPUNIJ::GPUNIJ(){
 
   jt = NULL;
   total = 0;
-  PART = 524288;
 
   char fname[256];
   const char *path="/home/yabuta/voltdb/voltdb";
@@ -190,15 +189,15 @@ void GPUNIJ::join()
       block_y = rrs < BLOCK_SIZE_Y ? rrs : BLOCK_SIZE_Y;      
       grid_x = lls / block_x;
       if (lls % block_x != 0)
-        grid_x++;      
+        grid_x++;
       grid_y = rrs / block_y;
       if (rrs % block_y != 0)
-        grid_y++;      
+        grid_y++;
       block_y = 1;
 
       printf("\nStarting...\nll = %d\trr = %d\tlls = %d\trrs = %d\n",ll,rr,lls,rrs);
       printf("grid_x = %d\tgrid_y = %d\tblock_x = %d\tblock_y = %d\n",grid_x,grid_y,block_x,block_y);
-      gpu_size = grid_x * grid_y * block_x * block_y+1;
+      gpu_size = grid_x * grid_y * block_x * block_y + 1;
       printf("gpu_size = %d\n",gpu_size);
 
 
@@ -275,13 +274,13 @@ void GPUNIJ::join()
       }
 
       /**************************** prefix sum *************************************/
-      if(!(presum(&count_dev,(uint)gpu_size))){
+      if(!(presum(&count_dev,gpu_size))){
         printf("count scan error.\n");
         exit(1);
       }
       /********************************************************************/      
 
-      if(!transport(count_dev,(uint)gpu_size,&jt_size)){
+      if(!transport(count_dev,gpu_size,&jt_size)){
         printf("transport error.\n");
         exit(1);
       }
@@ -297,12 +296,12 @@ void GPUNIJ::join()
         jt_size = 0;
       }else{
         jt = (RESULT *)malloc(jt_size*sizeof(RESULT));
-        res = cuMemAlloc(&jt_dev, jt_size * sizeof(RESULT));
+        res = cuMemAlloc(&jt_dev, jt_size*sizeof(RESULT));
         if (res != CUDA_SUCCESS) {
           printf("cuMemAlloc (join) failed\n");
           exit(1);
         }      
-        
+
         void *kernel_args[]={
           (void *)&lt_dev,
           (void *)&rt_dev,
@@ -378,6 +377,7 @@ void GPUNIJ::join()
     
 
   }
+
 
   /***************************************************************/
 

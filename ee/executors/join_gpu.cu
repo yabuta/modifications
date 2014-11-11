@@ -8,7 +8,7 @@
 
 using namespace voltdb;
 
-#define DISTANCE 1
+//#define DISTANCE 1
 
 extern "C" {
 
@@ -53,7 +53,7 @@ void iicount(
         mcount++;
       }
     }
-    count[i + k] = mcount;
+    count[i+k] = mcount;
   }
 
   
@@ -121,10 +121,10 @@ void oicount(
     for(uint j=0;threadIdx.x+j*blockDim.x<BLOCK_SIZE_Y&&(threadIdx.x+j*blockDim.x+BLOCK_SIZE_Y*blockIdx.y)<rtn;j++){
       tignv[threadIdx.x + j*blockDim.x] = ignv[threadIdx.x + j*blockDim.x + BLOCK_SIZE_Y * blockIdx.y];
     }
-    __syncthreads();  
+    __syncthreads();
     GNValue tognv=ognv[i];
     int rtn_g = rtn;
-    uint mcount = 0;
+    int mcount = 0;
     for(uint j = 0; j<BLOCK_SIZE_Y &&((j+BLOCK_SIZE_Y*blockIdx.y)<rtn_g);j++){
       if(ex.eval(tognv,tignv[j])) {
         mcount++;
@@ -132,10 +132,7 @@ void oicount(
     }
     count[i+k] = mcount;
   }
-  
-  if(i+k==blockDim.x*gridDim.x*gridDim.y-1){
-    count[i+k+1]=0;
-  }
+
 }
 
 
@@ -161,18 +158,18 @@ __global__ void oijoin(
     __syncthreads();
     GNValue tognv = ognv[i];
     int rtn_g = rtn;
-    int writeloc = count[i+blockIdx.y*blockDim.x*gridDim.x];
+    int writeloc = count[i+k];
     for(uint j = 0; j<BLOCK_SIZE_Y &&((j+BLOCK_SIZE_Y*blockIdx.y)<rtn_g);j++){
-      if(ex.eval(tognv,tignv[j])) {
+      if(ex.eval(tognv,tignv[j])){
         p[writeloc].lkey = i;
         p[writeloc].rkey = blockIdx.y*BLOCK_SIZE_Y+j;
+        if(p[writeloc].lkey == 0){
+          printf("%d %d %d\n",writeloc,p[writeloc].lkey,p[writeloc].rkey);
+        }
         writeloc++;
       }
     }
   }     
-}    
-
-
-
+}
 
 }
