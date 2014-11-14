@@ -36,9 +36,12 @@ class Group : public CatalogType {
 protected:
     Group(Catalog * catalog, CatalogType * parent, const std::string &path, const std::string &name);
     CatalogMap<UserRef> m_users;
-    bool m_sysproc;
+    bool m_admin;
     bool m_defaultproc;
-    bool m_adhoc;
+    bool m_defaultprocread;
+    bool m_sql;
+    bool m_sqlread;
+    bool m_allproc;
 
     virtual void update();
 
@@ -50,12 +53,18 @@ public:
     ~Group();
 
     const CatalogMap<UserRef> & users() const;
-    /** GETTER: Can invoke system procedures */
-    bool sysproc() const;
+    /** GETTER: Can perform all database operations */
+    bool admin() const;
     /** GETTER: Can invoke default procedures */
     bool defaultproc() const;
-    /** GETTER: Can invoke the adhoc system procedure */
-    bool adhoc() const;
+    /** GETTER: Can invoke read-only default procedures */
+    bool defaultprocread() const;
+    /** GETTER: Can invoke the adhoc system procedures */
+    bool sql() const;
+    /** GETTER: Can invoke read-only adhoc system procedures */
+    bool sqlread() const;
+    /** GETTER: Can invoke any user defined procedures */
+    bool allproc() const;
 };
 
 } // namespace catalog

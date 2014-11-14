@@ -50,8 +50,20 @@ uint presum(CUdeviceptr *d_Input, uint arrayLength)
     initScan();
     //size_t szWorkgroup;
 
-    if(arrayLength <= MAX_SHORT_ARRAY_SIZE && arrayLength > MIN_SHORT_ARRAY_SIZE)
-      {    
+    if(arrayLength <= MIN_SHORT_ARRAY_SIZE){
+
+      N = 5;
+
+      checkCudaErrors(cudaMalloc((void **)&d_Output, N * sizeof(uint)));
+      
+      checkCudaErrors(cudaDeviceSynchronize());
+      
+      scanExclusiveMIN((uint *)d_Output, (uint *)(*d_Input), N);
+      
+      checkCudaErrors(cudaDeviceSynchronize());
+      
+
+    }else if(arrayLength <= MAX_SHORT_ARRAY_SIZE && arrayLength > MIN_SHORT_ARRAY_SIZE){    
         for(uint i = 4; i<=MAX_SHORT_ARRAY_SIZE ; i<<=1){
           if(arrayLength <= i){
             N = i;
@@ -66,8 +78,7 @@ uint presum(CUdeviceptr *d_Input, uint arrayLength)
 
         checkCudaErrors(cudaDeviceSynchronize());
 
-    }else if(arrayLength <= MAX_LARGE_ARRAY_SIZE)
-    {
+    }else if(arrayLength <= MAX_LARGE_ARRAY_SIZE){
 
       N = MAX_SHORT_ARRAY_SIZE * iDivUp(arrayLength,MAX_SHORT_ARRAY_SIZE);
 
@@ -80,8 +91,7 @@ uint presum(CUdeviceptr *d_Input, uint arrayLength)
       checkCudaErrors(cudaDeviceSynchronize());
 
 
-    }else if(arrayLength <= MAX_LL_SIZE)
-      {
+    }else if(arrayLength <= MAX_LL_SIZE){
 
         N = MAX_LARGE_ARRAY_SIZE * iDivUp(arrayLength,MAX_LARGE_ARRAY_SIZE);
 
@@ -142,7 +152,7 @@ CUdeviceptr diff_part(CUdeviceptr d_Input , uint tnum , uint arrayLength, uint s
 
 }
 
-uint transport(CUdeviceptr d_Input , uint loc , uint *res){
+uint transport(CUdeviceptr d_Input , uint loc , int *res){
 
   CUdeviceptr d_Output;
 

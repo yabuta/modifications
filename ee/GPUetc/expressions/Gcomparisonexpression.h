@@ -75,17 +75,14 @@ public:
 
     CUDAH GComparisonExpression(ExpressionType e)
     {
-        et = static_cast<int>(e);
+        et = e;
+        //et = static_cast<int>(e);
     };
 
     CUDAH bool eval(GNValue NV1, GNValue NV2){
-        //printf("comparison\n");
-
-        //printf("ok1 %d\n",et);
 
         switch(et){
         case (EXPRESSION_TYPE_COMPARE_EQUAL):
-            //printf("ok2\n");
             return NV1.op_equals_withoutNull(NV2);
         case (EXPRESSION_TYPE_COMPARE_NOTEQUAL):
             return NV1.op_notEquals_withoutNull(NV2);
@@ -97,8 +94,9 @@ public:
             return NV1.op_lessThanOrEqual_withoutNull(NV2);
         case (EXPRESSION_TYPE_COMPARE_GREATERTHANOREQUALTO):
             return NV1.op_greaterThanOrEqual_withoutNull(NV2);
+        case (EXPRESSION_TYPE_INVALID):
+            return true;
         default:
-            //printf("ok3\n");
             return false;
         }
         
@@ -110,7 +108,7 @@ public:
 
 private:
 
-    int et;
+    ExpressionType et;
 
 
 };

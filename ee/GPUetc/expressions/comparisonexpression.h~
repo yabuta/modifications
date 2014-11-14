@@ -57,9 +57,9 @@
 #include "expressions/tuplevalueexpression.h"
 */
 
-#include "../common/GNValue.h"
+#include "GPUetc/common/GNValue.h"
 
-#include "../cudaheader.h"
+#include "GPUetc/cudaheader.h"
 
 #include <string>
 #include <cassert>
@@ -91,15 +91,20 @@ class GCmpGte {
 public:
     inline CUDAH bool cmp(GNValue l, GNValue r) const { return l.op_greaterThanOrEqual_withoutNull(r);}
 };
+/*
 class GCmpLike {
 public:
-    inline CUDA bool cmp(GNValue l, GNValue r) const { return l.like(r);}
+    inline CUDAH bool cmp(GNValue l, GNValue r) const { return l.like(r);}
 };
+*/
+
+/*
 class GCmpIn {
 public:
     inline CUDAH bool cmp(GNValue l, GNValue r) const
     { return l.inList(r) ? NValue::getTrue() : NValue::getFalse(); }
 };
+*/
 
 template <typename C>
 class ComparisonExpression{

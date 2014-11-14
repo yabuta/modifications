@@ -37,10 +37,11 @@ class Systemsettings : public CatalogType {
 
 protected:
     Systemsettings(Catalog * catalog, CatalogType * parent, const std::string &path, const std::string &name);
-    int32_t m_maxtemptablesize;
+    int32_t m_temptablemaxsize;
     int32_t m_snapshotpriority;
-    int32_t m_elasticPauseTime;
-    int32_t m_elasticThroughput;
+    int32_t m_elasticduration;
+    int32_t m_elasticthroughput;
+    int32_t m_querytimeout;
 
     virtual void update();
 
@@ -52,13 +53,15 @@ public:
     ~Systemsettings();
 
     /** GETTER: The maximum allocation size for temp tables in the EE */
-    int32_t maxtemptablesize() const;
+    int32_t temptablemaxsize() const;
     /** GETTER: The priority of snapshot work */
     int32_t snapshotpriority() const;
-    /** GETTER: Maximum pause time for rebalancing */
-    int32_t elasticPauseTime() const;
+    /** GETTER: Maximum duration time for rebalancing */
+    int32_t elasticduration() const;
     /** GETTER: Target throughput in megabytes for elasticity */
-    int32_t elasticThroughput() const;
+    int32_t elasticthroughput() const;
+    /** GETTER: The maximum latency for a query batch before timing out */
+    int32_t querytimeout() const;
 };
 
 } // namespace catalog

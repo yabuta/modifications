@@ -55,7 +55,7 @@ protected:
     bool m_adminstartup;
     CatalogMap<CommandLog> m_logconfig;
     int32_t m_heartbeatTimeout;
-    bool m_useadhocschema;
+    bool m_useddlschema;
 
     virtual void update();
 
@@ -94,8 +94,8 @@ public:
     const CatalogMap<CommandLog> & logconfig() const;
     /** GETTER: How long to wait, in seconds, between messages before deciding a host is dead */
     int32_t heartbeatTimeout() const;
-    /** GETTER: Manage the database schemas via catalog updates or adhoc DDL */
-    bool useadhocschema() const;
+    /** GETTER: Manage the database schemas via catalog updates or live DDL */
+    bool useddlschema() const;
 };
 
 } // namespace catalog

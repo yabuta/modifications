@@ -25,8 +25,9 @@ public:
 
     GPUNIJ();
     ~GPUNIJ();
-    
-    void join();
+
+    bool initGPU();
+    bool join();
 
 
 /**
@@ -34,16 +35,23 @@ public:
    inner tuple = right
  */
 
-    void setTableData(GNValue *oGNV,GNValue *iGNV,int outerSize,int innerSize,int confl){
+    void setTableData(GNValue *oGNV,GNValue *iGNV,int outerSize,int innerSize){
         
         left_GNV = oGNV;
         right_GNV = iGNV;
         left = outerSize;
         right = innerSize;
-        conditionflag = confl;
 
-        for(int i=32768 ; i<262144 ; i = i*2){
-            if(right<=i) PART = i;
+        PART = 262144;
+        
+        uint biggerTupleSize = left;
+        if(left < right) biggerTupleSize = right;
+
+        for(int i=32768 ; i<=262144 ; i = i*2){
+            if(biggerTupleSize<=i){
+                PART = i;
+                break;
+            }
         }
         printf("PART : %d\n",PART);
 
@@ -68,8 +76,7 @@ private:
     RESULT *jt;
     int total;
 
-    int left,right;
-    int conditionflag;
+    uint left,right;
     GNValue *left_GNV;
     GNValue *right_GNV;
 
@@ -80,7 +87,7 @@ private:
     CUresult res;
     CUdevice dev;
     CUcontext ctx;
-    CUfunction iifunction,iic_function,oifunction,oic_function;
+    CUfunction function,c_function;
     CUmodule module,c_module;
     
     void printDiff(struct timeval begin, struct timeval end);

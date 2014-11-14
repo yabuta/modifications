@@ -30,20 +30,22 @@ Systemsettings::Systemsettings(Catalog *catalog, CatalogType *parent, const stri
 : CatalogType(catalog, parent, path, name)
 {
     CatalogValue value;
-    m_fields["maxtemptablesize"] = value;
+    m_fields["temptablemaxsize"] = value;
     m_fields["snapshotpriority"] = value;
-    m_fields["elasticPauseTime"] = value;
-    m_fields["elasticThroughput"] = value;
+    m_fields["elasticduration"] = value;
+    m_fields["elasticthroughput"] = value;
+    m_fields["querytimeout"] = value;
 }
 
 Systemsettings::~Systemsettings() {
 }
 
 void Systemsettings::update() {
-    m_maxtemptablesize = m_fields["maxtemptablesize"].intValue;
+    m_temptablemaxsize = m_fields["temptablemaxsize"].intValue;
     m_snapshotpriority = m_fields["snapshotpriority"].intValue;
-    m_elasticPauseTime = m_fields["elasticPauseTime"].intValue;
-    m_elasticThroughput = m_fields["elasticThroughput"].intValue;
+    m_elasticduration = m_fields["elasticduration"].intValue;
+    m_elasticthroughput = m_fields["elasticthroughput"].intValue;
+    m_querytimeout = m_fields["querytimeout"].intValue;
 }
 
 CatalogType * Systemsettings::addChild(const std::string &collectionName, const std::string &childName) {
@@ -59,19 +61,23 @@ bool Systemsettings::removeChild(const std::string &collectionName, const std::s
     return false;
 }
 
-int32_t Systemsettings::maxtemptablesize() const {
-    return m_maxtemptablesize;
+int32_t Systemsettings::temptablemaxsize() const {
+    return m_temptablemaxsize;
 }
 
 int32_t Systemsettings::snapshotpriority() const {
     return m_snapshotpriority;
 }
 
-int32_t Systemsettings::elasticPauseTime() const {
-    return m_elasticPauseTime;
+int32_t Systemsettings::elasticduration() const {
+    return m_elasticduration;
 }
 
-int32_t Systemsettings::elasticThroughput() const {
-    return m_elasticThroughput;
+int32_t Systemsettings::elasticthroughput() const {
+    return m_elasticthroughput;
+}
+
+int32_t Systemsettings::querytimeout() const {
+    return m_querytimeout;
 }
 

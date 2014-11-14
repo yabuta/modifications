@@ -33,9 +33,6 @@ User::User(Catalog *catalog, CatalogType *parent, const string &path, const stri
 {
     CatalogValue value;
     m_childCollections["groups"] = &m_groups;
-    m_fields["sysproc"] = value;
-    m_fields["defaultproc"] = value;
-    m_fields["adhoc"] = value;
     m_fields["shadowPassword"] = value;
 }
 
@@ -50,9 +47,6 @@ User::~User() {
 }
 
 void User::update() {
-    m_sysproc = m_fields["sysproc"].intValue;
-    m_defaultproc = m_fields["defaultproc"].intValue;
-    m_adhoc = m_fields["adhoc"].intValue;
     m_shadowPassword = m_fields["shadowPassword"].strValue.c_str();
 }
 
@@ -82,18 +76,6 @@ bool User::removeChild(const std::string &collectionName, const std::string &chi
 
 const CatalogMap<GroupRef> & User::groups() const {
     return m_groups;
-}
-
-bool User::sysproc() const {
-    return m_sysproc;
-}
-
-bool User::defaultproc() const {
-    return m_defaultproc;
-}
-
-bool User::adhoc() const {
-    return m_adhoc;
 }
 
 const string & User::shadowPassword() const {

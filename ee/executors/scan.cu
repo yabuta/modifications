@@ -18,7 +18,7 @@
 
 //All three kernels run 512 threads per workgroup
 //Must be a power of two
-#define THREADBLOCK_SIZE 512
+#define THREADBLOCK_SIZE 1024
 #define LOOP_PERTHREAD 16
 #define LOOP_PERTHREAD2 16
 
@@ -87,6 +87,21 @@ inline __device__ uint4 scan4Exclusive(uint4 idata4, volatile uint *s_Data, uint
 ////////////////////////////////////////////////////////////////////////////////
 // Scan kernels
 ////////////////////////////////////////////////////////////////////////////////
+
+__global__ void scanExclusiveSharedMIN(
+    uint *d_Dst,
+    uint *d_Src,
+    uint size
+)
+{
+  if(threadIdx.x==0&&blockIdx.x==0&&blockIdx.y==0){
+    d_Dst[0] = 0;
+    for(int i=1; i<size ; i++){
+      d_Dst[i] = d_Src[i-1]+d_Dst[i-1];
+    }
+  }
+}
+
 __global__ void scanExclusiveShared(
     uint4 *d_Dst,
     uint4 *d_Src,
@@ -266,7 +281,7 @@ __global__ void transport_kernel(
 ////////////////////////////////////////////////////////////////////////////////
 //Derived as 32768 (max power-of-two gridDim.x) * 4 * THREADBLOCK_SIZE
 //Due to scanExclusiveShared<<<>>>() 1D block addressing
-extern "C" const uint MAX_BATCH_ELEMENTS = 4 * THREADBLOCK_SIZE * THREADBLOCK_SIZE * THREADBLOCK_SIZE;
+extern "C" const uint MAX_BATCH_ELEMENTS = THREADBLOCK_SIZE * THREADBLOCK_SIZE * THREADBLOCK_SIZE;
 extern "C" const uint MIN_SHORT_ARRAY_SIZE = 4;
 extern "C" const uint MAX_SHORT_ARRAY_SIZE = 4 * THREADBLOCK_SIZE;
 extern "C" const uint MIN_LARGE_ARRAY_SIZE = 8 * THREADBLOCK_SIZE;
@@ -323,6 +338,30 @@ static uint iDivUp(uint dividend, uint divisor)
 }
 */
 
+
+size_t scanExclusiveMIN(
+    uint *d_Dst,
+    uint *d_Src,
+    uint arrayLength
+)
+{
+
+    //Check total batch size limit
+    assert(arrayLength ==5);
+
+    //Check all threadblocks to be fully packed with data
+    //assert(arrayLength % (4 * THREADBLOCK_SIZE) == 0);
+
+    scanExclusiveSharedMIN<<<1, 1>>>(
+        d_Dst,
+        d_Src,
+        arrayLength
+    );
+    getLastCudaError("scanExclusiveShared() execution FAILED\n");
+
+    return THREADBLOCK_SIZE;
+}
+
 size_t scanExclusiveShort(
     uint *d_Dst,
     uint *d_Src,
@@ -341,9 +380,11 @@ size_t scanExclusiveShort(
     assert(arrayLength <= MAX_BATCH_ELEMENTS);
 
     //Check all threadblocks to be fully packed with data
-    assert(arrayLength % (4 * THREADBLOCK_SIZE) == 0);
+    //assert(arrayLength % (4 * THREADBLOCK_SIZE) == 0);
 
-    scanExclusiveShared<<<arrayLength / (4 * THREADBLOCK_SIZE), THREADBLOCK_SIZE>>>(
+    const int blockCountShort = iDivUp(arrayLength , 4*THREADBLOCK_SIZE);
+
+    scanExclusiveShared<<<blockCountShort, THREADBLOCK_SIZE>>>(
         (uint4 *)d_Dst,
         (uint4 *)d_Src,
         arrayLength

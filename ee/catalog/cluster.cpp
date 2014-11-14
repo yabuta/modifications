@@ -49,7 +49,7 @@ Cluster::Cluster(Catalog *catalog, CatalogType *parent, const string &path, cons
     m_fields["adminstartup"] = value;
     m_childCollections["logconfig"] = &m_logconfig;
     m_fields["heartbeatTimeout"] = value;
-    m_fields["useadhocschema"] = value;
+    m_fields["useddlschema"] = value;
 }
 
 Cluster::~Cluster() {
@@ -94,7 +94,7 @@ void Cluster::update() {
     m_adminport = m_fields["adminport"].intValue;
     m_adminstartup = m_fields["adminstartup"].intValue;
     m_heartbeatTimeout = m_fields["heartbeatTimeout"].intValue;
-    m_useadhocschema = m_fields["useadhocschema"].intValue;
+    m_useddlschema = m_fields["useddlschema"].intValue;
 }
 
 CatalogType * Cluster::addChild(const std::string &collectionName, const std::string &childName) {
@@ -210,7 +210,7 @@ int32_t Cluster::heartbeatTimeout() const {
     return m_heartbeatTimeout;
 }
 
-bool Cluster::useadhocschema() const {
-    return m_useadhocschema;
+bool Cluster::useddlschema() const {
+    return m_useddlschema;
 }
 

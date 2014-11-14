@@ -89,18 +89,18 @@ class GNValue {
     /* Check if the value represents SQL NULL */
     CUDAH bool isNull() const;
 
-    bool getSourceInlined() const;
+    CUDAH bool getSourceInlined() const;
 
-    int compare_withoutNull(const GNValue rhs) const;
+    CUDAH int compare_withoutNull(const GNValue rhs) const;
 
     /* Return a boolean NValue with the comparison result */
 
-    bool op_equals_withoutNull(const GNValue rhs) const;
-    bool op_notEquals_withoutNull(const GNValue rhs) const;
-    bool op_lessThan_withoutNull(const GNValue rhs) const;
-    bool op_lessThanOrEqual_withoutNull(const GNValue rhs) const;
-    bool op_greaterThan_withoutNull(const GNValue rhs) const;
-    bool op_greaterThanOrEqual_withoutNull(const GNValue rhs) const;
+    CUDAH bool op_equals_withoutNull(const GNValue rhs) const;
+    CUDAH bool op_notEquals_withoutNull(const GNValue rhs) const;
+    CUDAH bool op_lessThan_withoutNull(const GNValue rhs) const;
+    CUDAH bool op_lessThanOrEqual_withoutNull(const GNValue rhs) const;
+    CUDAH bool op_greaterThan_withoutNull(const GNValue rhs) const;
+    CUDAH bool op_greaterThanOrEqual_withoutNull(const GNValue rhs) const;
 
     static const uint16_t kMaxDecPrec = 38;
     static const uint16_t kMaxDecScale = 12;
@@ -125,10 +125,6 @@ class GNValue {
         m_valueType = type;
     }
 
-
-  private:
-
-
     /**
      * Get the type of the value. This information is private
      * to prevent code outside of NValue from branching based on the type of a value.
@@ -138,6 +134,9 @@ class GNValue {
     }
 
 
+  private:
+
+    
     /**
      * 16 bytes of storage for NValue data.
      */
@@ -149,18 +148,18 @@ class GNValue {
      * Private constructor that initializes storage and the specifies the type of value
      * that will be stored in this instance
      */
-  CUDAH GNValue(const ValueType type) {
-    ::memset( m_data, 0, 16);
-    setValueType(type);
-    m_sourceInlined = false;
-  }
+    CUDAH GNValue(const ValueType type) {
+        ::memset( m_data, 0, 16);
+        setValueType(type);
+        m_sourceInlined = false;
+    }
 
 
     CUDAH const int8_t& getTinyInt() const {
         assert(getValueType() == VALUE_TYPE_TINYINT);
         return *reinterpret_cast<const int8_t*>(m_data);
     }
-
+  
     CUDAH int8_t& getTinyInt() {
         assert(getValueType() == VALUE_TYPE_TINYINT);
         return *reinterpret_cast<int8_t*>(m_data);
@@ -170,7 +169,7 @@ class GNValue {
         assert(getValueType() == VALUE_TYPE_SMALLINT);
         return *reinterpret_cast<const int16_t*>(m_data);
     }
-
+  
     CUDAH int16_t& getSmallInt() {
         assert(getValueType() == VALUE_TYPE_SMALLINT);
         return *reinterpret_cast<int16_t*>(m_data);
@@ -180,12 +179,12 @@ class GNValue {
         assert(getValueType() == VALUE_TYPE_INTEGER);
         return *reinterpret_cast<const int32_t*>(m_data);
     }
-
+  
     CUDAH int32_t& getInteger() {
         assert(getValueType() == VALUE_TYPE_INTEGER);
         return *reinterpret_cast<int32_t*>(m_data);
     }
-
+  
     CUDAH const int64_t& getBigInt() const {
         assert((getValueType() == VALUE_TYPE_BIGINT) ||
                (getValueType() == VALUE_TYPE_TIMESTAMP) ||
@@ -242,43 +241,8 @@ class GNValue {
         return *reinterpret_cast<bool*>(m_data);
     }
 
-    bool isBooleanNULL() const ;
+    CUDAH bool isBooleanNULL() const ;
 
-  /*
-    std::size_t getAllocationSizeForObject() const;
-    static std::size_t getAllocationSizeForObject(int32_t length);
-
-    static void throwCastSQLException(const ValueType origType,
-                                      const ValueType newType)
-    {
-        char msg[1024];
-        snprintf(msg, 1024, "Type %s can't be cast as %s",
-                 valueToString(origType).c_str(),
-                 valueToString(newType).c_str());
-        throw SQLException(SQLException::
-                           data_exception_most_specific_type_mismatch,
-                           msg);
-    }
-  */
-    /** return the whole part of a TTInt*/
-  /*
-    static inline int64_t narrowDecimalToBigInt(TTInt &scaledValue) {
-        if (scaledValue > NValue::s_maxInt64AsDecimal || scaledValue < NValue::s_minInt64AsDecimal) {
-            throwCastSQLValueOutOfRangeException<TTInt>(scaledValue, VALUE_TYPE_DECIMAL, VALUE_TYPE_BIGINT);
-        }
-        TTInt whole(scaledValue);
-        whole /= kMaxScaleFactor;
-        return whole.ToInt();
-    }
-  */
-    /** return the fractional part of a TTInt*/
-  /*
-    static inline int64_t getFractionalPart(TTInt& scaledValue) {
-        TTInt fractional(scaledValue);
-        fractional %= kMaxScaleFactor;
-        return fractional.ToInt();
-    }
-  */
 
     CUDAH int64_t castAsBigIntAndGetValue() const {
         assert(isNull() == false);
@@ -298,619 +262,43 @@ class GNValue {
             return getTimestamp();
         case VALUE_TYPE_DOUBLE:
 /*
-            if (getDouble() > (double)INT64_MAX || getDouble() < (double)VOLT_INT64_MIN) {
-              //throwCastSQLValueOutOfRangeException<double>(getDouble(), VALUE_TYPE_DOUBLE, VALUE_TYPE_BIGINT);
-            }
+  if (getDouble() > (double)INT64_MAX || getDouble() < (double)VOLT_INT64_MIN) {
+  //throwCastSQLValueOutOfRangeException<double>(getDouble(), VALUE_TYPE_DOUBLE, VALUE_TYPE_BIGINT);
+  }
 */
             return static_cast<int64_t>(getDouble());
         case VALUE_TYPE_ADDRESS:
             return getBigInt();
         default:
-          //throwCastSQLException(type, VALUE_TYPE_BIGINT);
+            //throwCastSQLException(type, VALUE_TYPE_BIGINT);
             return 0; // NOT REACHED
         }
     }
 
-  /*
-    int64_t castAsRawInt64AndGetValue() const {
-        const ValueType type = getValueType();
 
-        switch (type) {
-        case VALUE_TYPE_TINYINT:
-            return static_cast<int64_t>(getTinyInt());
-        case VALUE_TYPE_SMALLINT:
-            return static_cast<int64_t>(getSmallInt());
-        case VALUE_TYPE_INTEGER:
-            return static_cast<int64_t>(getInteger());
-        case VALUE_TYPE_BIGINT:
-            return getBigInt();
-        case VALUE_TYPE_TIMESTAMP:
-            return getTimestamp();
-        default:
-            throwCastSQLException(type, VALUE_TYPE_BIGINT);
-            return 0; // NOT REACHED
-        }
-    }
-  */
-
-  /*
-    int32_t castAsIntegerAndGetValue() const {
-        assert(isNull() == false);
-
-        const ValueType type = getValueType();
-        switch (type) {
-        case VALUE_TYPE_NULL:
-            return INT32_NULL;
-        case VALUE_TYPE_TINYINT:
-            return static_cast<int32_t>(getTinyInt());
-        case VALUE_TYPE_SMALLINT:
-            return static_cast<int32_t>(getSmallInt());
-        case VALUE_TYPE_INTEGER:
-            return getInteger();
-        case VALUE_TYPE_BIGINT:
-        {
-            const int64_t value = getBigInt();
-            if (value > (int64_t)INT32_MAX || value < (int64_t)VOLT_INT32_MIN) {
-                throwCastSQLValueOutOfRangeException<int64_t>(value, VALUE_TYPE_BIGINT, VALUE_TYPE_INTEGER);
-            }
-            return static_cast<int32_t>(value);
-        }
-        case VALUE_TYPE_DOUBLE:
-        {
-            const double value = getDouble();
-            if (value > (double)INT32_MAX || value < (double)VOLT_INT32_MIN) {
-                throwCastSQLValueOutOfRangeException(value, VALUE_TYPE_DOUBLE, VALUE_TYPE_INTEGER);
-            }
-            return static_cast<int32_t>(value);
-        }
-        default:
-            throwCastSQLException(type, VALUE_TYPE_INTEGER);
-            return 0; // NOT REACHED
-        }
-    }
-  */
-
-  /*
-    double castAsDoubleAndGetValue() const {
-        assert(isNull() == false);
-
-        const ValueType type = getValueType();
-
-        switch (type) {
-          case VALUE_TYPE_NULL:
-              return DOUBLE_MIN;
-          case VALUE_TYPE_TINYINT:
-            return static_cast<double>(getTinyInt());
-          case VALUE_TYPE_SMALLINT:
-            return static_cast<double>(getSmallInt());
-          case VALUE_TYPE_INTEGER:
-            return static_cast<double>(getInteger());
-          case VALUE_TYPE_ADDRESS:
-            return static_cast<double>(getBigInt());
-          case VALUE_TYPE_BIGINT:
-            return static_cast<double>(getBigInt());
-          case VALUE_TYPE_TIMESTAMP:
-            return static_cast<double>(getTimestamp());
-          case VALUE_TYPE_DOUBLE:
-            return getDouble();
-          case VALUE_TYPE_DECIMAL:
-          {
-            TTInt scaledValue = getDecimal();
-            // we only deal with the decimal number within int64_t range here
-            int64_t whole = narrowDecimalToBigInt(scaledValue);
-            int64_t fractional = getFractionalPart(scaledValue);
-            double retval;
-            retval = static_cast<double>(whole) +
-                    (static_cast<double>(fractional)/static_cast<double>(kMaxScaleFactor));
-            return retval;
-          }
-          case VALUE_TYPE_VARCHAR:
-          case VALUE_TYPE_VARBINARY:
-          default:
-            throwCastSQLException(type, VALUE_TYPE_DOUBLE);
-            return 0; // NOT REACHED
-        }
-    }
-  */
-  /*
-    TTInt castAsDecimalAndGetValue() const {
-        assert(isNull() == false);
-
-        const ValueType type = getValueType();
-
-        switch (type) {
-          case VALUE_TYPE_TINYINT:
-          case VALUE_TYPE_SMALLINT:
-          case VALUE_TYPE_INTEGER:
-          case VALUE_TYPE_BIGINT:
-          case VALUE_TYPE_TIMESTAMP: {
-            int64_t value = castAsRawInt64AndGetValue();
-            TTInt retval(value);
-            retval *= kMaxScaleFactor;
-            return retval;
-          }
-          case VALUE_TYPE_DECIMAL:
-              return getDecimal();
-          case VALUE_TYPE_DOUBLE: {
-            int64_t intValue = castAsBigIntAndGetValue();
-            TTInt retval(intValue);
-            retval *= kMaxScaleFactor;
-
-            double value = getDouble();
-            value -= static_cast<double>(intValue); // isolate decimal part
-            value *= static_cast<double>(kMaxScaleFactor); // scale up to integer.
-            TTInt fracval((int64_t)value);
-            retval += fracval;
-            return retval;
-          }
-          case VALUE_TYPE_VARCHAR:
-          case VALUE_TYPE_VARBINARY:
-          default:
-            throwCastSQLException(type, VALUE_TYPE_DECIMAL);
-            return 0; // NOT REACHED
-        }
-    }
-  */
-    /**
-     * This funciton does not check NULL value.
-     */
-
-  /*
-    double getNumberFromString() const
-    {
-        assert(isNull() == false);
-
-        const int32_t strLength = getObjectLength_withoutNull();
-        // Guarantee termination at end of object -- or strtod might not stop there.
-        char safeBuffer[strLength+1];
-        memcpy(safeBuffer, getObjectValue_withoutNull(), strLength);
-        safeBuffer[strLength] = '\0';
-        char * bufferEnd = safeBuffer;
-        double result = strtod(safeBuffer, &bufferEnd);
-        // Needs to have consumed SOMETHING.
-        if (bufferEnd > safeBuffer) {
-            // Unconsumed trailing chars are OK if they are whitespace.
-            while (bufferEnd < safeBuffer+strLength && isspace(*bufferEnd)) {
-                ++bufferEnd;
-            }
-            if (bufferEnd == safeBuffer+strLength) {
-                return result;
-            }
-        }
-
-        std::ostringstream oss;
-        oss << "Could not convert to number: '" << safeBuffer << "' contains invalid character value.";
-        throw SQLException(SQLException::data_exception_invalid_character_value_for_cast, oss.str().c_str());
-    }
-  */
-
-  /*
-    NValue castAsBigInt() const {
-        assert(isNull() == false);
-
-        NValue retval(VALUE_TYPE_BIGINT);
-        const ValueType type = getValueType();
-        switch (type) {
-        case VALUE_TYPE_TINYINT:
-            retval.getBigInt() = static_cast<int64_t>(getTinyInt()); break;
-        case VALUE_TYPE_SMALLINT:
-            retval.getBigInt() = static_cast<int64_t>(getSmallInt()); break;
-        case VALUE_TYPE_INTEGER:
-            retval.getBigInt() = static_cast<int64_t>(getInteger()); break;
-        case VALUE_TYPE_ADDRESS:
-            retval.getBigInt() = getBigInt(); break;
-        case VALUE_TYPE_BIGINT:
-            return *this;
-        case VALUE_TYPE_TIMESTAMP:
-            retval.getBigInt() = getTimestamp(); break;
-        case VALUE_TYPE_DOUBLE:
-            if (getDouble() > (double)INT64_MAX || getDouble() < (double)VOLT_INT64_MIN) {
-                throwCastSQLValueOutOfRangeException<double>(getDouble(), VALUE_TYPE_DOUBLE, VALUE_TYPE_BIGINT);
-            }
-            retval.getBigInt() = static_cast<int64_t>(getDouble()); break;
-        case VALUE_TYPE_DECIMAL: {
-            TTInt scaledValue = getDecimal();
-            retval.getBigInt() = narrowDecimalToBigInt(scaledValue); break;
-        }
-        case VALUE_TYPE_VARCHAR:
-            retval.getBigInt() = static_cast<int64_t>(getNumberFromString()); break;
-        case VALUE_TYPE_VARBINARY:
-        default:
-            throwCastSQLException(type, VALUE_TYPE_BIGINT);
-        }
-        return retval;
-    }
-  */
-  /*
-    NValue castAsTimestamp() const {
-        assert(isNull() == false);
-
-        NValue retval(VALUE_TYPE_TIMESTAMP);
-        const ValueType type = getValueType();
-        switch (type) {
-        case VALUE_TYPE_TINYINT:
-            retval.getTimestamp() = static_cast<int64_t>(getTinyInt()); break;
-        case VALUE_TYPE_SMALLINT:
-            retval.getTimestamp() = static_cast<int64_t>(getSmallInt()); break;
-        case VALUE_TYPE_INTEGER:
-            retval.getTimestamp() = static_cast<int64_t>(getInteger()); break;
-        case VALUE_TYPE_BIGINT:
-            retval.getTimestamp() = getBigInt(); break;
-        case VALUE_TYPE_TIMESTAMP:
-            retval.getTimestamp() = getTimestamp(); break;
-        case VALUE_TYPE_DOUBLE:
-            // TODO: Consider just eliminating this switch case to throw a cast exception,
-            // or explicitly throwing some other exception here.
-            // Direct cast of double to timestamp (implemented via intermediate cast to integer, here)
-            // is not a SQL standard requirement, may not even make it past the planner's type-checks,
-            // or may just be too far a stretch.
-            // OR it might be a convenience for some obscure system-generated edge case?
-
-            if (getDouble() > (double)INT64_MAX || getDouble() < (double)VOLT_INT64_MIN) {
-                throwCastSQLValueOutOfRangeException<double>(getDouble(), VALUE_TYPE_DOUBLE, VALUE_TYPE_BIGINT);
-            }
-            retval.getTimestamp() = static_cast<int64_t>(getDouble()); break;
-        case VALUE_TYPE_DECIMAL: {
-            // TODO: Consider just eliminating this switch case to throw a cast exception,
-            // or explicitly throwing some other exception here.
-            // Direct cast of decimal to timestamp (implemented via intermediate cast to integer, here)
-            // is not a SQL standard requirement, may not even make it past the planner's type-checks,
-            // or may just be too far a stretch.
-            // OR it might be a convenience for some obscure system-generated edge case?
-
-            TTInt scaledValue = getDecimal();
-            retval.getTimestamp() = narrowDecimalToBigInt(scaledValue); break;
-        }
-        case VALUE_TYPE_VARCHAR: {
-            const int32_t length = getObjectLength_withoutNull();
-            const char* bytes = reinterpret_cast<const char*>(getObjectValue_withoutNull());
-            const std::string value(bytes, length);
-            retval.getTimestamp() = parseTimestampString(value);
-            break;
-        }
-        case VALUE_TYPE_VARBINARY:
-        default:
-            throwCastSQLException(type, VALUE_TYPE_TIMESTAMP);
-        }
-        return retval;
-    }
-  */
-  /*
-    template <typename T>
-    void narrowToInteger(const T value, ValueType sourceType)
-    {
-        if (value > (T)INT32_MAX || value < (T)VOLT_INT32_MIN) {
-            throwCastSQLValueOutOfRangeException(value, sourceType, VALUE_TYPE_INTEGER);
-        }
-        getInteger() = static_cast<int32_t>(value);
-    }
-  */
-
-  /*
-    NValue castAsInteger() const {
-        NValue retval(VALUE_TYPE_INTEGER);
-        const ValueType type = getValueType();
-        switch (type) {
-        case VALUE_TYPE_TINYINT:
-            retval.getInteger() = static_cast<int32_t>(getTinyInt()); break;
-        case VALUE_TYPE_SMALLINT:
-            retval.getInteger() = static_cast<int32_t>(getSmallInt()); break;
-        case VALUE_TYPE_INTEGER:
-            return *this;
-        case VALUE_TYPE_BIGINT:
-            retval.narrowToInteger(getBigInt(), type); break;
-        case VALUE_TYPE_TIMESTAMP:
-            retval.narrowToInteger(getTimestamp(), type); break;
-        case VALUE_TYPE_DOUBLE:
-            retval.narrowToInteger(getDouble(), type); break;
-        case VALUE_TYPE_DECIMAL: {
-            TTInt scaledValue = getDecimal();
-            // get the whole part of the decimal
-            int64_t whole = narrowDecimalToBigInt(scaledValue);
-            // try to convert the whole part, which is a int64_t
-            retval.narrowToInteger(whole, VALUE_TYPE_BIGINT); break;
-        }
-        case VALUE_TYPE_VARCHAR:
-            retval.narrowToInteger(getNumberFromString(), type); break;
-        case VALUE_TYPE_VARBINARY:
-        default:
-            throwCastSQLException(type, VALUE_TYPE_INTEGER);
-        }
-        return retval;
-    }
-  */
-
-
-  /*
-    template <typename T>
-    void narrowToSmallInt(const T value, ValueType sourceType)
-    {
-        if (value > (T)INT16_MAX || value < (T)VOLT_INT16_MIN) {
-            throwCastSQLValueOutOfRangeException(value, sourceType, VALUE_TYPE_SMALLINT);
-        }
-        getSmallInt() = static_cast<int16_t>(value);
-    }
-  */
-  /*
-    NValue castAsSmallInt() const {
-        assert(isNull() == false);
-
-        NValue retval(VALUE_TYPE_SMALLINT);
-        const ValueType type = getValueType();
-        switch (type) {
-        case VALUE_TYPE_TINYINT:
-            retval.getSmallInt() = static_cast<int16_t>(getTinyInt()); break;
-        case VALUE_TYPE_SMALLINT:
-            retval.getSmallInt() = getSmallInt(); break;
-        case VALUE_TYPE_INTEGER:
-            retval.narrowToSmallInt(getInteger(), type); break;
-        case VALUE_TYPE_BIGINT:
-            retval.narrowToSmallInt(getBigInt(), type); break;
-        case VALUE_TYPE_TIMESTAMP:
-            retval.narrowToSmallInt(getTimestamp(), type); break;
-        case VALUE_TYPE_DOUBLE:
-            retval.narrowToSmallInt(getDouble(), type); break;
-        case VALUE_TYPE_DECIMAL: {
-            TTInt scaledValue = getDecimal();
-            int64_t whole = narrowDecimalToBigInt(scaledValue);
-            retval.narrowToSmallInt(whole, VALUE_TYPE_BIGINT); break;
-        }
-        case VALUE_TYPE_VARCHAR:
-            retval.narrowToSmallInt(getNumberFromString(), type); break;
-        case VALUE_TYPE_VARBINARY:
-        default:
-            throwCastSQLException(type, VALUE_TYPE_SMALLINT);
-        }
-        return retval;
-    }
-  */
-
-  /*
-    template <typename T>
-    void narrowToTinyInt(const T value, ValueType sourceType)
-    {
-        if (value > (T)INT8_MAX || value < (T)VOLT_INT8_MIN) {
-            throwCastSQLValueOutOfRangeException(value, sourceType, VALUE_TYPE_TINYINT);
-        }
-        getTinyInt() = static_cast<int8_t>(value);
-    }
-  */
-  /*
-    NValue castAsTinyInt() const {
-        assert(isNull() == false);
-
-        NValue retval(VALUE_TYPE_TINYINT);
-        const ValueType type = getValueType();
-        switch (type) {
-        case VALUE_TYPE_TINYINT:
-            retval.getTinyInt() = getTinyInt(); break;
-        case VALUE_TYPE_SMALLINT:
-            retval.narrowToTinyInt(getSmallInt(), type); break;
-        case VALUE_TYPE_INTEGER:
-            retval.narrowToTinyInt(getInteger(), type); break;
-        case VALUE_TYPE_BIGINT:
-            retval.narrowToTinyInt(getBigInt(), type); break;
-        case VALUE_TYPE_TIMESTAMP:
-            retval.narrowToTinyInt(getTimestamp(), type); break;
-        case VALUE_TYPE_DOUBLE:
-            retval.narrowToTinyInt(getDouble(), type); break;
-        case VALUE_TYPE_DECIMAL: {
-            TTInt scaledValue = getDecimal();
-            int64_t whole = narrowDecimalToBigInt(scaledValue);
-            retval.narrowToTinyInt(whole, type); break;
-        }
-        case VALUE_TYPE_VARCHAR:
-            retval.narrowToTinyInt(getNumberFromString(), type); break;
-        case VALUE_TYPE_VARBINARY:
-        default:
-            throwCastSQLException(type, VALUE_TYPE_TINYINT);
-        }
-        return retval;
-    }
-  */
-
-  /*
-    NValue castAsDouble() const {
-        assert(isNull() == false);
-
-        NValue retval(VALUE_TYPE_DOUBLE);
-        const ValueType type = getValueType();
-        switch (type) {
-        case VALUE_TYPE_TINYINT:
-            retval.getDouble() = static_cast<double>(getTinyInt()); break;
-        case VALUE_TYPE_SMALLINT:
-            retval.getDouble() = static_cast<double>(getSmallInt()); break;
-        case VALUE_TYPE_INTEGER:
-            retval.getDouble() = static_cast<double>(getInteger()); break;
-        case VALUE_TYPE_BIGINT:
-            retval.getDouble() = static_cast<double>(getBigInt()); break;
-        case VALUE_TYPE_TIMESTAMP:
-            retval.getDouble() = static_cast<double>(getTimestamp()); break;
-        case VALUE_TYPE_DOUBLE:
-            retval.getDouble() = getDouble(); break;
-        case VALUE_TYPE_DECIMAL:
-            retval.getDouble() = castAsDoubleAndGetValue(); break;
-        case VALUE_TYPE_VARCHAR:
-            retval.getDouble() = getNumberFromString(); break;
-        case VALUE_TYPE_VARBINARY:
-        default:
-            throwCastSQLException(type, VALUE_TYPE_DOUBLE);
-        }
-        return retval;
-    }
-  */
-
-//void streamTimestamp(std::stringstream& value) const;
-
-  /*
-    NValue castAsString() const {
-        assert(isNull() == false);
-
-        std::stringstream value;
-        const ValueType type = getValueType();
-        switch (type) {
-        case VALUE_TYPE_TINYINT:
-            // This cast keeps the tiny int from being confused for a char.
-            value << static_cast<int>(getTinyInt()); break;
-        case VALUE_TYPE_SMALLINT:
-            value << getSmallInt(); break;
-        case VALUE_TYPE_INTEGER:
-            value << getInteger(); break;
-        case VALUE_TYPE_BIGINT:
-            value << getBigInt(); break;
-        //case VALUE_TYPE_TIMESTAMP:
-            //TODO: The SQL standard wants an actual date literal rather than a numeric value, here. See ENG-4284.
-            //value << static_cast<double>(getTimestamp()); break;
-        case VALUE_TYPE_DOUBLE:
-            // Use the specific standard SQL formatting for float values,
-            // which the C/C++ format options don't quite support.
-            streamSQLFloatFormat(value, getDouble());
-            break;
-        case VALUE_TYPE_DECIMAL:
-            value << createStringFromDecimal(); break;
-        case VALUE_TYPE_VARCHAR:
-        case VALUE_TYPE_VARBINARY: {
-        // note: we allow binary conversion to strings to support
-        // byte[] as string parameters...
-        // In the future, it would be nice to check this is a decent string here...
-            NValue retval(VALUE_TYPE_VARCHAR);
-            memcpy(retval.m_data, m_data, sizeof(m_data));
-            return retval;
-        }
-        case VALUE_TYPE_TIMESTAMP: {
-            streamTimestamp(value);
-            break;
-        }
-        default:
-            throwCastSQLException(type, VALUE_TYPE_VARCHAR);
-        }
-        return getTempStringValue(value.str().c_str(), value.str().length());
-    }
-  */
-  /*
-    NValue castAsBinary() const {
-        assert(isNull() == false);
-
-        NValue retval(VALUE_TYPE_VARBINARY);
-        const ValueType type = getValueType();
-        switch (type) {
-        case VALUE_TYPE_VARBINARY:
-            memcpy(retval.m_data, m_data, sizeof(m_data));
-            break;
-        default:
-            throwCastSQLException(type, VALUE_TYPE_VARBINARY);
-        }
-        return retval;
-    }
-  */
-
-  /*
-    void createDecimalFromInt(int64_t rhsint)
-    {
-        TTInt scaled(rhsint);
-        scaled *= kMaxScaleFactor;
-        getDecimal() = scaled;
-    }
-  */
-
-  /*
-    static CUDAH inline bool validVarcharSize(const char *valueChars, const size_t length, const int32_t maxLength) {
-        int32_t min_continuation_bytes = static_cast<int32_t>(length - maxLength);
-        if (min_continuation_bytes <= 0) {
-            return true;
-        }
-        size_t i = length;
-        while (i--) {
-            if ((valueChars[i] & 0xc0) == 0x80) {
-                if (--min_continuation_bytes == 0) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-  */
-    /**
-     * Assuming non-null NValue, validate the size of the varchar or varbinary
-     */
-  /*
-    static inline CUDAH void checkTooNarrowVarcharAndVarbinary(ValueType type, const char* ptr,
-            int32_t objLength, int32_t maxLength, bool isInBytes) {
-        if (maxLength == 0) {
-          //throwFatalLogicErrorStreamed("Zero maxLength for object type " << valueToString(type));
-        }
-
-        if (type == VALUE_TYPE_VARBINARY) {
-            if (objLength > maxLength) {
-                char msg[1024];
-                snprintf(msg, 1024,
-                        "The size %d of the value exceeds the size of the VARBINARY(%d) column.",
-                        objLength, maxLength);
-                throw SQLException(SQLException::data_exception_string_data_length_mismatch,
-                        msg);
-            }
-        } else if (type == VALUE_TYPE_VARCHAR) {
-            if (isInBytes) {
-                if (objLength > maxLength) {
-                    std::string inputValue;
-                    if (objLength > FULL_STRING_IN_MESSAGE_THRESHOLD) {
-                        inputValue = std::string(ptr, FULL_STRING_IN_MESSAGE_THRESHOLD) + std::string("...");
-                    } else {
-                        inputValue = std::string(ptr, objLength);
-                    }
-                    char msg[1024];
-                    snprintf(msg, 1024,
-                            "The size %d of the value '%s' exceeds the size of the VARCHAR(%d BYTES) column.",
-                            objLength, inputValue.c_str(), maxLength);
-                    throw SQLException(SQLException::data_exception_string_data_length_mismatch,
-                            msg);
-                }
-            } else if (!validVarcharSize(ptr, objLength, maxLength)) {
-                const int32_t charLength = getCharLength(ptr, objLength);
-                char msg[1024];
-                std::string inputValue;
-                if (charLength > FULL_STRING_IN_MESSAGE_THRESHOLD) {
-                    const char * end = getIthCharPosition(ptr, objLength, FULL_STRING_IN_MESSAGE_THRESHOLD+1);
-                    int32_t numBytes = (int32_t)(end - ptr);
-                    inputValue = std::string(ptr, numBytes) + std::string("...");
-                } else {
-                    inputValue = std::string(ptr, objLength);
-                }
-                snprintf(msg, 1024,
-                        "The size %d of the value '%s' exceeds the size of the VARCHAR(%d) column.",
-                        charLength, inputValue.c_str(), maxLength);
-
-                throw SQLException(SQLException::data_exception_string_data_length_mismatch,
-                        msg);
-            }
-        } else {
-            throwFatalLogicErrorStreamed("NValue::checkTooNarrowVarcharAndVarbinary, "
-                    "Invalid object type " << valueToString(type));
-        }
-    }
-  */
     template<typename T>
-    CUDAH int compareValue (const T lhsValue, const T rhsValue) const {
+        CUDAH int compareValue (const T lhsValue, const T rhsValue) const {
         if (lhsValue == rhsValue) {
             return VALUE_COMPARE_EQUAL;
-        } else if (lhsValue > rhsValue) {
+        } else if (lhsValue > rhsValue){
             return VALUE_COMPARE_GREATERTHAN;
         } else {
             return VALUE_COMPARE_LESSTHAN;
         }
     }
 
-  CUDAH int compareDoubleValue (const double lhsValue, const double rhsValue) const {
+    CUDAH int compareDoubleValue (const double lhsValue, const double rhsValue) const {
         // Treat NaN values as equals and also make them smaller than neagtive infinity.
         // This breaks IEEE754 for expressions slightly.
-    /*
+        
+/*
         if(std::isnan(lhsValue)){
             return std::isnan(rhsValue) ? VALUE_COMPARE_EQUAL : VALUE_COMPARE_LESSTHAN;
         }
         else if (std::isnan(rhsValue)) {
-            return VALUE_COMPARE_GREATERTHAN;
-        }
-    */
+          return VALUE_COMPARE_GREATERTHAN;
+          }
+        */
 
         if (lhsValue > rhsValue) {
             return VALUE_COMPARE_GREATERTHAN;
@@ -977,17 +365,7 @@ class GNValue {
             int64_t lhsValue, rhsValue;
             lhsValue = static_cast<int64_t>(getInteger());
             rhsValue = rhs.castAsBigIntAndGetValue();
-
-            switch (compareValue<int64_t>(lhsValue,rhsValue)) {
-            case VALUE_COMPARE_EQUAL:
-                return VALUE_COMPARE_EQUAL;
-            case VALUE_COMPARE_GREATERTHAN:
-                return VALUE_COMPARE_GREATERTHAN;
-            case VALUE_COMPARE_LESSTHAN:
-                return VALUE_COMPARE_LESSTHAN;
-            default:
-                return -1;
-            }
+            return compareValue<int64_t>(lhsValue,rhsValue);
         }
 
     }
@@ -1031,7 +409,8 @@ class GNValue {
         }
     }
 
-    int compareDoubleValue (const GNValue rhs) const {
+    CUDAH int compareDoubleValue (const GNValue rhs) const {
+
         assert(m_valueType == VALUE_TYPE_DOUBLE);
 
         const double lhsValue = getDouble();
@@ -1039,7 +418,8 @@ class GNValue {
 
         switch (rhs.getValueType()) {
         case VALUE_TYPE_DOUBLE:
-            rhsValue = rhs.getDouble(); break;
+            rhsValue = rhs.getDouble();
+            break;
         case VALUE_TYPE_TINYINT:
             rhsValue = static_cast<double>(rhs.getTinyInt()); break;
         case VALUE_TYPE_SMALLINT:
@@ -1058,115 +438,20 @@ class GNValue {
             whole /= kMaxScaleFactor;
             fractional %= kMaxScaleFactor;
             rhsValue = static_cast<double>(whole.ToInt()) +
-                    (static_cast<double>(fractional.ToInt())/static_cast<double>(kMaxScaleFactor));
+                (static_cast<double>(fractional.ToInt())/static_cast<double>(kMaxScaleFactor));
             break;
         }
         default:
-/*
-            char message[128];
-            snprintf(message, 128,
-                    "Type %s cannot be cast for comparison to type %s",
-                    valueToString(rhs.getValueType()).c_str(),
-                    valueToString(getValueType()).c_str());
-            throw SQLException(SQLException::
-                    data_exception_most_specific_type_mismatch,
-                    message);
-            // Not reached
-            */
+
             return -3;
         }
 
         return compareDoubleValue(lhsValue, rhsValue);
     }
 
-/*
-    CUDAH int compareStringValue (const GNValue rhs) const {
-        assert(m_valueType == VALUE_TYPE_VARCHAR);
 
-        ValueType rhsType = rhs.getValueType();
-        if ((rhsType != VALUE_TYPE_VARCHAR) && (rhsType != VALUE_TYPE_VARBINARY)) {
-          *
-            char message[128];
-            snprintf(message, 128,
-                    "Type %s cannot be cast for comparison to type %s",
-                    valueToString(rhsType).c_str(),
-                    valueToString(m_valueType).c_str());
-            throw SQLException(SQLException::
-                    data_exception_most_specific_type_mismatch,
-                    message);
-          *
-          return -3;
-        }
 
-        assert(m_valueType == VALUE_TYPE_VARCHAR);
-
-        const int32_t leftLength = getObjectLength_withoutNull();
-        const int32_t rightLength = rhs.getObjectLength_withoutNull();
-        const char* left = reinterpret_cast<const char*>(getObjectValue_withoutNull());
-        const char* right = reinterpret_cast<const char*>(rhs.getObjectValue_withoutNull());
-
-        const int result = ::strncmp(left, right, std::min(leftLength, rightLength));
-        if (result == 0 && leftLength != rightLength) {
-            if (leftLength > rightLength) {
-                return  VALUE_COMPARE_GREATERTHAN;
-            } else {
-                return VALUE_COMPARE_LESSTHAN;
-            }
-        }
-        else if (result > 0) {
-            return VALUE_COMPARE_GREATERTHAN;
-        }
-        else if (result < 0) {
-            return VALUE_COMPARE_LESSTHAN;
-        }
-
-        return VALUE_COMPARE_EQUAL;
-    }
-*/
-
-/*
-    int compareBinaryValue (const GNValue rhs) const {
-        assert(m_valueType == VALUE_TYPE_VARBINARY);
-
-        if (rhs.getValueType() != VALUE_TYPE_VARBINARY) {
-          *
-            char message[128];
-            snprintf(message, 128,
-                     "Type %s cannot be cast for comparison to type %s",
-                     valueToString(rhs.getValueType()).c_str(),
-                     valueToString(m_valueType).c_str());
-            throw SQLException(SQLException::
-                               data_exception_most_specific_type_mismatch,
-                               message);
-          *
-          return -3;
-        }
-        const int32_t leftLength = getObjectLength_withoutNull();
-        const int32_t rightLength = rhs.getObjectLength_withoutNull();
-
-        const char* left = reinterpret_cast<const char*>(getObjectValue_withoutNull());
-        const char* right = reinterpret_cast<const char*>(rhs.getObjectValue_withoutNull());
-
-        const int result = ::memcmp(left, right, std::min(leftLength, rightLength));
-        if (result == 0 && leftLength != rightLength) {
-            if (leftLength > rightLength) {
-                return  VALUE_COMPARE_GREATERTHAN;
-            } else {
-                return VALUE_COMPARE_LESSTHAN;
-            }
-        }
-        else if (result > 0) {
-            return VALUE_COMPARE_GREATERTHAN;
-        }
-        else if (result < 0) {
-            return VALUE_COMPARE_LESSTHAN;
-        }
-
-        return VALUE_COMPARE_EQUAL;
-    }
-*/
-
-    int compareDecimalValue (const GNValue rhs) const {
+    CUDAH int compareDecimalValue (const GNValue rhs) const {
 
         assert(m_valueType == VALUE_TYPE_DECIMAL);
         switch (rhs.getValueType()) {
@@ -1183,7 +468,7 @@ class GNValue {
             whole /= kMaxScaleFactor;
             fractional %= kMaxScaleFactor;
             const double lhsValue = static_cast<double>(whole.ToInt()) +
-                    (static_cast<double>(fractional.ToInt())/static_cast<double>(kMaxScaleFactor));
+                (static_cast<double>(fractional.ToInt())/static_cast<double>(kMaxScaleFactor));
 
             return compareValue<double>(lhsValue, rhsValue);
         }
@@ -1220,419 +505,22 @@ class GNValue {
         }
         default:
         {
-          /*
-            char message[128];
-            snprintf(message, 128,
-                    "Type %s cannot be cast for comparison to type %s",
-                    valueToString(rhs.getValueType()).c_str(),
-                    valueToString(getValueType()).c_str());
-            throw SQLException(SQLException::
-                    data_exception_most_specific_type_mismatch,
-                    message);
-            // Not reached
-            */
+            /*
+              char message[128];
+              snprintf(message, 128,
+              "Type %s cannot be cast for comparison to type %s",
+              valueToString(rhs.getValueType()).c_str(),
+              valueToString(getValueType()).c_str());
+              throw SQLException(SQLException::
+              data_exception_most_specific_type_mismatch,
+              message);
+              // Not reached
+              */
 
         }
         }
     }
 
-
-  /*
-    NValue opAddBigInts(const int64_t lhs, const int64_t rhs) const {
-        //Scary overflow check from https://www.securecoding.cert.org/confluence/display/cplusplus/INT32-CPP.+Ensure+that+operations+on+signed+integers+do+not+result+in+overflow
-        if ( ((lhs^rhs)
-                | (((lhs^(~(lhs^rhs)
-                  & (1L << (sizeof(int64_t)*CHAR_BIT-1))))+rhs)^rhs)) >= 0) {
-            char message[4096];
-            snprintf(message, 4096, "Adding %jd and %jd will overflow BigInt storage", (intmax_t)lhs, (intmax_t)rhs);
-            throw SQLException( SQLException::data_exception_numeric_value_out_of_range, message);
-        }
-        return getBigIntValue(lhs + rhs);
-    }
-  */
-  /*
-    NValue opSubtractBigInts(const int64_t lhs, const int64_t rhs) const {
-        //Scary overflow check from https://www.securecoding.cert.org/confluence/display/cplusplus/INT32-CPP.+Ensure+that+operations+on+signed+integers+do+not+result+in+overflow
-        if ( ((lhs^rhs)
-                & (((lhs ^ ((lhs^rhs)
-                  & (1L << (sizeof(int64_t)*CHAR_BIT-1))))-rhs)^rhs)) < 0) {
-            char message[4096];
-            snprintf(message, 4096, "Subtracting %jd from %jd will overflow BigInt storage", (intmax_t)lhs, (intmax_t)rhs);
-            throw SQLException( SQLException::data_exception_numeric_value_out_of_range, message);
-        }
-        return getBigIntValue(lhs - rhs);
-    }
-  */
-  /*
-    NValue opMultiplyBigInts(const int64_t lhs, const int64_t rhs) const {
-        bool overflow = false;
-        //Scary overflow check from https://www.securecoding.cert.org/confluence/display/cplusplus/INT32-CPP.+Ensure+that+operations+on+signed+integers+do+not+result+in+overflow
-        if (lhs > 0){  * lhs is positive * 
-            if (rhs > 0) {  * lhs and rhs are positive *
-                if (lhs > (INT64_MAX / rhs)) {
-                    overflow= true;
-                }
-            } * end if lhs and rhs are positive* 
-            else { * lhs positive, rhs non-positive* 
-                if (rhs < (INT64_MIN / lhs)) {
-                    overflow = true;
-                }
-            } * lhs positive, rhs non-positive *
-        } * end if lhs is positive* 
-        else { * lhs is non-positive *
-            if (rhs > 0) { * lhs is non-positive, rhs is positive * 
-                if (lhs < (INT64_MIN / rhs)) {
-                    overflow = true;
-                }
-            } * end if lhs is non-positive, rhs is positive *
-            else { * lhs and rhs are non-positive *
-                if ( (lhs != 0) && (rhs < (INT64_MAX / lhs))) {
-                    overflow = true;
-                }
-            } * end if lhs and rhs non-positive *
-        } * end if lhs is non-positive *
-
-        const int64_t result = lhs * rhs;
-
-        if (result == INT64_NULL) {
-            overflow = true;
-        }
-
-        if (overflow) {
-            char message[4096];
-            snprintf(message, 4096, "Multiplying %jd with %jd will overflow BigInt storage", (intmax_t)lhs, (intmax_t)rhs);
-            throw SQLException( SQLException::data_exception_numeric_value_out_of_range, message);
-        }
-
-        return getBigIntValue(result);
-    }
-  */
-  
-  /*
-    NValue opDivideBigInts(const int64_t lhs, const int64_t rhs) const {
-        if (rhs == 0) {
-            char message[4096];
-            snprintf(message, 4096, "Attempted to divide %jd by 0", (intmax_t)lhs);
-            throw SQLException(SQLException::data_exception_division_by_zero,
-                               message);
-        }
-
-        **
-         * Because the smallest int64 value is used to represent null (and this is checked for an handled above)
-         * it isn't necessary to check for any kind of overflow since none is possible.
-         *
-        return getBigIntValue(int64_t(lhs / rhs));
-    }
-  */
-
-  /*
-    NValue opAddDoubles(const double lhs, const double rhs) const {
-        const double result = lhs + rhs;
-        throwDataExceptionIfInfiniteOrNaN(result, "'+' operator");
-        return getDoubleValue(result);
-    }
-  */
-  /*
-    NValue opSubtractDoubles(const double lhs, const double rhs) const {
-        const double result = lhs - rhs;
-        throwDataExceptionIfInfiniteOrNaN(result, "'-' operator");
-        return getDoubleValue(result);
-    }
-  */
-  /*
-    NValue opMultiplyDoubles(const double lhs, const double rhs) const {
-        const double result = lhs * rhs;
-        throwDataExceptionIfInfiniteOrNaN(result, "'*' operator");
-        return getDoubleValue(result);
-    }
-  */
-  /*
-    NValue opDivideDoubles(const double lhs, const double rhs) const {
-        const double result = lhs / rhs;
-        throwDataExceptionIfInfiniteOrNaN(result, "'/' operator");
-        return getDoubleValue(result);
-    }
-  */
-  /*
-    NValue opAddDecimals(const NValue &lhs, const NValue &rhs) const {
-        assert(lhs.isNull() == false);
-        assert(rhs.isNull() == false);
-        assert(lhs.getValueType() == VALUE_TYPE_DECIMAL);
-        assert(rhs.getValueType() == VALUE_TYPE_DECIMAL);
-
-        TTInt retval(lhs.getDecimal());
-        if (retval.Add(rhs.getDecimal()) || retval > s_maxDecimalValue || retval < s_minDecimalValue) {
-            char message[4096];
-            snprintf(message, 4096, "Attempted to add %s with %s causing overflow/underflow",
-                    lhs.createStringFromDecimal().c_str(), rhs.createStringFromDecimal().c_str());
-            throw SQLException(SQLException::data_exception_numeric_value_out_of_range,
-                               message);
-        }
-
-        return getDecimalValue(retval);
-    }
-  */
-
-  /*
-    NValue opSubtractDecimals(const NValue &lhs, const NValue &rhs) const {
-        assert(lhs.isNull() == false);
-        assert(rhs.isNull() == false);
-        assert(lhs.getValueType() == VALUE_TYPE_DECIMAL);
-        assert(rhs.getValueType() == VALUE_TYPE_DECIMAL);
-
-        TTInt retval(lhs.getDecimal());
-        if (retval.Sub(rhs.getDecimal()) || retval > s_maxDecimalValue || retval < s_minDecimalValue) {
-            char message[4096];
-            snprintf(message, 4096, "Attempted to subtract %s from %s causing overflow/underflow",
-                    rhs.createStringFromDecimal().c_str(), lhs.createStringFromDecimal().c_str());
-            throw SQLException(SQLException::data_exception_numeric_value_out_of_range,
-                               message);
-        }
-
-        return getDecimalValue(retval);
-    }
-  */
-    /*
-     * Avoid scaling both sides if possible. E.g, don't turn dec * 2 into
-     * (dec * 2*kMaxScale*E-12). Then the result of simple multiplication
-     * is a*b*E-24 and have to further multiply to get back to the assumed
-     * E-12, which can overflow unnecessarily at the middle step.
-     */
-
-  /*
-    NValue opMultiplyDecimals(const NValue &lhs, const NValue &rhs) const {
-        assert(lhs.isNull() == false);
-        assert(rhs.isNull() == false);
-        assert(lhs.getValueType() == VALUE_TYPE_DECIMAL);
-        assert(rhs.getValueType() == VALUE_TYPE_DECIMAL);
-
-        TTLInt calc;
-        calc.FromInt(lhs.getDecimal());
-        calc *= rhs.getDecimal();
-        calc /= kMaxScaleFactor;
-        TTInt retval;
-        if (retval.FromInt(calc)  || retval > s_maxDecimalValue || retval < s_minDecimalValue) {
-            char message[4096];
-            snprintf(message, 4096, "Attempted to multiply %s by %s causing overflow/underflow. Unscaled result was %s",
-                    lhs.createStringFromDecimal().c_str(), rhs.createStringFromDecimal().c_str(),
-                    calc.ToString(10).c_str());
-            throw SQLException(SQLException::data_exception_numeric_value_out_of_range,
-                               message);
-        }
-        return getDecimalValue(retval);
-    }
-  */
-
-    /*
-     * Divide two decimals and return a correctly scaled decimal.
-     * A little cumbersome. Better algorithms welcome.
-     *   (1) calculate the quotient and the remainder.
-     *   (2) temporarily scale the remainder to 19 digits
-     *   (3) divide out remainder to calculate digits after the radix point.
-     *   (4) scale remainder to 12 digits (that's the default scale)
-     *   (5) scale the quotient back to 19,12.
-     *   (6) sum the scaled quotient and remainder.
-     *   (7) construct the final decimal.
-     */
-
-  /*
-    NValue opDivideDecimals(const NValue &lhs, const NValue &rhs) const {
-        assert(lhs.isNull() == false);
-        assert(rhs.isNull() == false);
-        assert(lhs.getValueType() == VALUE_TYPE_DECIMAL);
-        assert(rhs.getValueType() == VALUE_TYPE_DECIMAL);
-
-        TTLInt calc;
-        calc.FromInt(lhs.getDecimal());
-        calc *= kMaxScaleFactor;
-        if (calc.Div(rhs.getDecimal())) {
-            char message[4096];
-            snprintf( message, 4096, "Attempted to divide %s by %s causing overflow/underflow (or divide by zero)",
-                    lhs.createStringFromDecimal().c_str(), rhs.createStringFromDecimal().c_str());
-            throw SQLException(SQLException::data_exception_numeric_value_out_of_range,
-                               message);
-        }
-        TTInt retval;
-        if (retval.FromInt(calc)  || retval > s_maxDecimalValue || retval < s_minDecimalValue) {
-            char message[4096];
-            snprintf( message, 4096, "Attempted to divide %s by %s causing overflow. Unscaled result was %s",
-                    lhs.createStringFromDecimal().c_str(), rhs.createStringFromDecimal().c_str(),
-                    calc.ToString(10).c_str());
-            throw SQLException(SQLException::data_exception_numeric_value_out_of_range,
-                               message);
-        }
-        return getDecimalValue(retval);
-    }
-  */
-
-  /*
-    static NValue getTinyIntValue(int8_t value) {
-        NValue retval(VALUE_TYPE_TINYINT);
-        retval.getTinyInt() = value;
-        if (value == INT8_NULL) {
-            retval.tagAsNull();
-        }
-        return retval;
-    }
-  */
-
-  /*
-    static NValue getSmallIntValue(int16_t value) {
-        NValue retval(VALUE_TYPE_SMALLINT);
-        retval.getSmallInt() = value;
-        if (value == INT16_NULL) {
-            retval.tagAsNull();
-        }
-        return retval;
-    }
-  */
-
-  /*
-    static NValue getIntegerValue(int32_t value) {
-        NValue retval(VALUE_TYPE_INTEGER);
-        retval.getInteger() = value;
-        if (value == INT32_NULL) {
-            retval.tagAsNull();
-        }
-        return retval;
-    }
-  */
-
-  /*
-    static NValue getBigIntValue(int64_t value) {
-        NValue retval(VALUE_TYPE_BIGINT);
-        retval.getBigInt() = value;
-        if (value == INT64_NULL) {
-            retval.tagAsNull();
-        }
-        return retval;
-    }
-  */
-
-  /*
-    static NValue getTimestampValue(int64_t value) {
-        NValue retval(VALUE_TYPE_TIMESTAMP);
-        retval.getTimestamp() = value;
-        if (value == INT64_NULL) {
-            retval.tagAsNull();
-        }
-        return retval;
-    }
-  */
-
-  /*
-    static NValue getDoubleValue(double value) {
-        NValue retval(VALUE_TYPE_DOUBLE);
-        retval.getDouble() = value;
-        if (value <= DOUBLE_NULL) {
-            retval.tagAsNull();
-        }
-        return retval;
-    }
-  */
-
-  /*
-    static NValue getDecimalValueFromString(const std::string &value) {
-        NValue retval(VALUE_TYPE_DECIMAL);
-        retval.createDecimalFromString(value);
-        return retval;
-    }
-  */
-
-  /*
-    static NValue getAllocatedArrayValueFromSizeAndType(size_t elementCount, ValueType elementType)
-    {
-        NValue retval(VALUE_TYPE_ARRAY);
-        retval.allocateANewNValueList(elementCount, elementType);
-        return retval;
-    }
-  */
-  //static CUDAH Pool* getTempStringPool();
-
-  /*
-    static NValue getTempStringValue(const char* value, size_t size) {
-        return getAllocatedValue(VALUE_TYPE_VARCHAR, value, size, getTempStringPool());
-    }
-  */
-
-  /*
-    static NValue getTempBinaryValue(const unsigned char* value, size_t size) {
-        return getAllocatedValue(VALUE_TYPE_VARBINARY, reinterpret_cast<const char*>(value), size, getTempStringPool());
-    }
-  */
-    /// Assumes hex-encoded input
-  /*
-    static inline NValue getTempBinaryValueFromHex(const std::string& value) {
-        size_t rawLength = value.length() / 2;
-        unsigned char rawBuf[rawLength];
-        hexDecodeToBinary(rawBuf, value.c_str());
-        return getTempBinaryValue(rawBuf, rawLength);
-    }
-  */
-
-  /*
-    static NValue getAllocatedValue(ValueType type, const char* value, size_t size, Pool* stringPool) {
-        NValue retval(type);
-        char* storage = retval.allocateValueStorage((int32_t)size, stringPool);
-        ::memcpy(storage, value, (int32_t)size);
-        return retval;
-    }
-  */
-
-  /*
-    char* allocateValueStorage(int32_t length, Pool* stringPool)
-    {
-        // This unsets the NValue's null tag and returns the length of the length.
-        const int8_t lengthLength = setObjectLength(length);
-        const int32_t minLength = length + lengthLength;
-        StringRef* sref = StringRef::create(minLength, stringPool);
-        char* storage = sref->get();
-        setObjectLengthToLocation(length, storage);
-        storage += lengthLength;
-        setObjectValue(sref);
-        return storage;
-    }
-  */
-
-  /*
-    static NValue getNullStringValue() {
-        NValue retval(VALUE_TYPE_VARCHAR);
-        retval.tagAsNull();
-        *reinterpret_cast<char**>(retval.m_data) = NULL;
-        return retval;
-    }
-  */
-
-  /*
-    static NValue getNullBinaryValue() {
-        NValue retval(VALUE_TYPE_VARBINARY);
-        retval.tagAsNull();
-        *reinterpret_cast<char**>(retval.m_data) = NULL;
-        return retval;
-    }
-  */
-    /*
-    CUDAH static GNValue getNullValue() {
-        GNValue retval(VALUE_TYPE_NULL);
-        retval.tagAsNull();
-        return retval;
-    }
-    */
-
-  /*
-    static NValue getDecimalValue(TTInt value) {
-        NValue retval(VALUE_TYPE_DECIMAL);
-        retval.getDecimal() = value;
-        return retval;
-    }
-  */
-  /*
-    static NValue getAddressValue(void *address) {
-        NValue retval(VALUE_TYPE_ADDRESS);
-        *reinterpret_cast<void**>(retval.m_data) = address;
-        return retval;
-    }
-  */
 
 };
 
@@ -1646,108 +534,6 @@ inline CUDAH GNValue::GNValue() {
     m_sourceInlined = false;
 }
 
-/**
- * Retrieve a boolean NValue that is true
- */
-
-/*
-inline CUDAH GNValue GNValue::getTrue() {
-    GNValue retval(VALUE_TYPE_BOOLEAN);
-    retval.getBoolean() = true;
-    return retval;
-}
-*/
-
-/**
- * Retrieve a boolean NValue that is false
- */
-
-/*
-inline CUDAH GNValue GNValue::getFalse() {
-    GNValue retval(VALUE_TYPE_BOOLEAN);
-    retval.getBoolean() = false;
-    return retval;
-}
-*/
-
-/**
- * Returns C++ true if this NValue is a boolean and is true
- * If it is NULL, return false.
- */
-
-/*
-inline CUDAH bool GNValue::isTrue() const {
-    if (isBooleanNULL()) {
-        return false;
-    }
-    return getBoolean();
-}
-*/
-
-/**
- * Returns C++ false if this NValue is a boolean and is true
- * If it is NULL, return false.
- */
-
-/*
-inline bool NValue::isFalse() const {
-    if (isBooleanNULL()) {
-        return false;
-    }
-    return !getBoolean();
-}
-
-inline bool NValue::isBooleanNULL() const {
-    assert(getValueType() == VALUE_TYPE_BOOLEAN);
-    return *reinterpret_cast<const int8_t*>(m_data) == INT8_NULL;
-}
-*/
-/*
-inline bool NValue::getSourceInlined() const {
-    return m_sourceInlined;
-}
-*/
-
-/**
- * Objects may have storage allocated for them. Calling free causes the NValue to return the storage allocated for
- * the object to the heap
- */
-
-/*
-inline void NValue::free() const {
-    switch (getValueType())
-    {
-    case VALUE_TYPE_VARCHAR:
-    case VALUE_TYPE_VARBINARY:
-    case VALUE_TYPE_ARRAY:
-        {
-            assert(!m_sourceInlined);
-            StringRef* sref = *reinterpret_cast<StringRef* const*>(m_data);
-            if (sref != NULL)
-            {
-                StringRef::destroy(sref);
-            }
-        }
-        break;
-    default:
-        return;
-    }
-}
-
-*/
-
-/*
-inline void NValue::freeObjectsFromTupleStorage(std::vector<char*> const &oldObjects)
-{
-
-    for (std::vector<char*>::const_iterator it = oldObjects.begin(); it != oldObjects.end(); ++it) {
-        StringRef* sref = reinterpret_cast<StringRef*>(*it);
-        if (sref != NULL) {
-            StringRef::destroy(sref);
-        }
-    }
-}
-*/
 
 
 inline CUDAH int GNValue::compare_withoutNull(const GNValue rhs) const {
@@ -1755,7 +541,7 @@ inline CUDAH int GNValue::compare_withoutNull(const GNValue rhs) const {
 
     switch (m_valueType) {
     case VALUE_TYPE_VARCHAR:
-        return 0;//compareStringValue(rhs);
+        return -3;//compareStringValue(rhs);
     case VALUE_TYPE_BIGINT:
         return compareBigInt(rhs);
     case VALUE_TYPE_INTEGER:
@@ -1769,21 +555,21 @@ inline CUDAH int GNValue::compare_withoutNull(const GNValue rhs) const {
     case VALUE_TYPE_DOUBLE:
         return compareDoubleValue(rhs);
 /*
-    case VALUE_TYPE_VARBINARY:
-    return compareBinaryValue(rhs);
+  case VALUE_TYPE_VARBINARY:
+  return compareBinaryValue(rhs);
 */
     case VALUE_TYPE_DECIMAL:
         return compareDecimalValue(rhs);
     default: {
         /*
-        throwDynamicSQLException(
-                "non comparable types lhs '%s' rhs '%s'",
-                getValueTypeString().c_str(),
-                rhs.getValueTypeString().c_str());
+          throwDynamicSQLException(
+          "non comparable types lhs '%s' rhs '%s'",
+          getValueTypeString().c_str(),
+          rhs.getValueTypeString().c_str());
         */
-        return 0;
+        return -3;
     }
-      /* no break */
+        /* no break */
     }
 }
 
@@ -1802,40 +588,40 @@ inline CUDAH bool GNValue::isNull() const {
 
 // without null comparison
 inline CUDAH bool GNValue::op_equals_withoutNull(const GNValue rhs) const {
-  int temp = compare_withoutNull(rhs);
-  if(temp == -3) return false;
-  return temp == 0;
+    int temp = compare_withoutNull(rhs);
+    if(temp == -3) return false;
+    return temp == 0;
 }
 
 inline CUDAH bool GNValue::op_notEquals_withoutNull(const GNValue rhs) const {
-  int temp = compare_withoutNull(rhs);
-  if(temp == -3) return false;
-  return temp != 0;
+    int temp = compare_withoutNull(rhs);
+    if(temp == -3) return false;
+    return temp != 0;
 }
 
 inline CUDAH bool GNValue::op_lessThan_withoutNull(const GNValue rhs) const {
-  int temp = compare_withoutNull(rhs);
-  if(temp == -3) return false;
-  return temp < 0;
+    int temp = compare_withoutNull(rhs);
+    if(temp == -3) return false;
+    return temp < 0;
 }
 
 inline CUDAH bool GNValue::op_lessThanOrEqual_withoutNull(const GNValue rhs) const {
-  int temp = compare_withoutNull(rhs);
-  if(temp == -3) return false;
-  return temp <= 0;
+    int temp = compare_withoutNull(rhs);
+    if(temp == -3) return false;
+    return temp <= 0;
 
 }
 
 inline CUDAH bool GNValue::op_greaterThan_withoutNull(const GNValue rhs) const {
-  int temp = compare_withoutNull(rhs);
-  if(temp == -3) return false;
-  return temp > 0;
+    int temp = compare_withoutNull(rhs);
+    if(temp == -3) return false;
+    return temp > 0;
 }
 
 inline CUDAH bool GNValue::op_greaterThanOrEqual_withoutNull(const GNValue rhs) const {
-  int temp = compare_withoutNull(rhs);
-  if(temp == -3) return false;
-  return temp >= 0;
+    int temp = compare_withoutNull(rhs);
+    if(temp == -3) return false;
+    return temp >= 0;
 }
 
 

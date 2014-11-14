@@ -36,9 +36,6 @@ class User : public CatalogType {
 protected:
     User(Catalog * catalog, CatalogType * parent, const std::string &path, const std::string &name);
     CatalogMap<GroupRef> m_groups;
-    bool m_sysproc;
-    bool m_defaultproc;
-    bool m_adhoc;
     std::string m_shadowPassword;
 
     virtual void update();
@@ -51,12 +48,6 @@ public:
     ~User();
 
     const CatalogMap<GroupRef> & groups() const;
-    /** GETTER: Can invoke system procedures */
-    bool sysproc() const;
-    /** GETTER: Can invoke default procedures */
-    bool defaultproc() const;
-    /** GETTER: Can invoke the adhoc system procedure */
-    bool adhoc() const;
     /** GETTER: SHA-1 double hashed hex encoded version of the password */
     const std::string & shadowPassword() const;
 };

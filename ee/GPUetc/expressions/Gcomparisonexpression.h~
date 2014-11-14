@@ -67,42 +67,22 @@
 
 namespace voltdb {
 
-/*
-class GCmpLike {
-public:
-    inline CUDAH bool cmp(GNValue l, GNValue r) const { return l.like(r);}
-};
-*/
-
-/*
-class GCmpIn {
-public:
-    inline CUDAH bool cmp(GNValue l, GNValue r) const
-    { return l.inList(r) ? NValue::getTrue() : NValue::getFalse(); }
-};
-*/
-
 class GComparisonExpression{
+
 public:
 
-    int et;
-    int t;
-    int ff;
+    GComparisonExpression();
 
     CUDAH GComparisonExpression(ExpressionType e)
     {
-        et = static_cast<int>(e);
-        printf("et = %d\tG et = %d\n",e,et);
+        et = e;
+        //et = static_cast<int>(e);
     };
 
-    inline CUDAH bool eval(const GNValue NV1, const GNValue NV2) const {
-        //printf("comparison\n");
+    CUDAH bool eval(GNValue NV1, GNValue NV2){
 
-        printf("ok1 %d\n",et);
-/*
         switch(et){
         case (EXPRESSION_TYPE_COMPARE_EQUAL):
-            //printf("ok2\n");
             return NV1.op_equals_withoutNull(NV2);
         case (EXPRESSION_TYPE_COMPARE_NOTEQUAL):
             return NV1.op_notEquals_withoutNull(NV2);
@@ -115,27 +95,7 @@ public:
         case (EXPRESSION_TYPE_COMPARE_GREATERTHANOREQUALTO):
             return NV1.op_greaterThanOrEqual_withoutNull(NV2);
         default:
-            //printf("ok3\n");
-            return false;
-        }
-*/
-        switch(et){
-        case 10:
-            printf("ok2\n");
-            return NV1.op_equals_withoutNull(NV2);
-        case 11:
-            return NV1.op_notEquals_withoutNull(NV2);
-        case 12:
-            return NV1.op_lessThan_withoutNull(NV2);
-        case 13:
-            return NV1.op_greaterThan_withoutNull(NV2);
-        case 14:
-            return NV1.op_lessThanOrEqual_withoutNull(NV2);
-        case 15:
-            return NV1.op_greaterThanOrEqual_withoutNull(NV2);
-        default:
-            printf("ok3\n");
-            return false;
+            return true;
         }
         
     }
@@ -144,22 +104,12 @@ public:
         return et;
     }
 
+private:
 
-//private:
+    ExpressionType et;
 
 
 };
 
-/*
-template <typename C, typename L, typename R>
-class InlinedComparisonExpression : public ComparisonExpression<C> {
-public:
-    InlinedComparisonExpression(ExpressionType type,
-                                         AbstractExpression *left,
-                                         AbstractExpression *right)
-        : ComparisonExpression<C>(type, left, right)
-    {}
-};
-*/
 }
 #endif

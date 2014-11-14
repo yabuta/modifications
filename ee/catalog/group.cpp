@@ -33,9 +33,12 @@ Group::Group(Catalog *catalog, CatalogType *parent, const string &path, const st
 {
     CatalogValue value;
     m_childCollections["users"] = &m_users;
-    m_fields["sysproc"] = value;
+    m_fields["admin"] = value;
     m_fields["defaultproc"] = value;
-    m_fields["adhoc"] = value;
+    m_fields["defaultprocread"] = value;
+    m_fields["sql"] = value;
+    m_fields["sqlread"] = value;
+    m_fields["allproc"] = value;
 }
 
 Group::~Group() {
@@ -49,9 +52,12 @@ Group::~Group() {
 }
 
 void Group::update() {
-    m_sysproc = m_fields["sysproc"].intValue;
+    m_admin = m_fields["admin"].intValue;
     m_defaultproc = m_fields["defaultproc"].intValue;
-    m_adhoc = m_fields["adhoc"].intValue;
+    m_defaultprocread = m_fields["defaultprocread"].intValue;
+    m_sql = m_fields["sql"].intValue;
+    m_sqlread = m_fields["sqlread"].intValue;
+    m_allproc = m_fields["allproc"].intValue;
 }
 
 CatalogType * Group::addChild(const std::string &collectionName, const std::string &childName) {
@@ -82,15 +88,27 @@ const CatalogMap<UserRef> & Group::users() const {
     return m_users;
 }
 
-bool Group::sysproc() const {
-    return m_sysproc;
+bool Group::admin() const {
+    return m_admin;
 }
 
 bool Group::defaultproc() const {
     return m_defaultproc;
 }
 
-bool Group::adhoc() const {
-    return m_adhoc;
+bool Group::defaultprocread() const {
+    return m_defaultprocread;
+}
+
+bool Group::sql() const {
+    return m_sql;
+}
+
+bool Group::sqlread() const {
+    return m_sqlread;
+}
+
+bool Group::allproc() const {
+    return m_allproc;
 }
 

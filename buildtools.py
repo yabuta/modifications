@@ -265,7 +265,7 @@ def buildMakefile(CTX):
     makefile.write("\tnvcc $(INCLUDE) -isystem ../../third_party/cpp/ -arch sm_35 -cubin -o objects/executors/join_gpu.cubin %sjoin_gpu.cu\n"%(SCAN_PATH))
     makefile.write("objects/executors/scan_main.co:../../src/ee/executors/scan_main.cpp %s\n"%GPUPATH)    
     makefile.write("\tg++ $(INCLUDE) $(GPUFLAGS) -fPIC -o objects/executors/scan_main.co -c %sscan_main.cpp\n"%(SCAN_PATH))
-    makefile.write("objects/executors/GPUNIJ.co:../../src/ee/executors/GPUNIJ.cpp objects/executors/join_gpu.cubin %s\n"%GPUPATH)
+    makefile.write("objects/executors/GPUNIJ.co:../../src/ee/executors/GPUNIJ.cpp objects/executors/join_gpu.cubin objects/executors/scan.co %s\n"%GPUPATH)
     makefile.write("\tg++ $(INCLUDE) $(GPUFLAGS) -isystem ../../third_party/cpp/ -fPIC -o objects/executors/GPUNIJ.co -c %sGPUNIJ.cpp\n"%(SCAN_PATH))
 
 

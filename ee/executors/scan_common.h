@@ -156,6 +156,12 @@ public:
     extern "C" void initScan(void);
     extern "C" void closeScan(void);
     
+    extern "C" size_t scanExclusiveMIN(
+        uint *d_Dst,
+        uint *d_Src,
+        uint arrayLength
+        );
+
     extern "C" size_t scanExclusiveShort(
         uint *d_Dst,
         uint *d_Src,
@@ -203,7 +209,7 @@ public:
     extern "C" uint transport(
         CUdeviceptr d_Input,
         uint loc,
-        uint *res
+        int *res
         );
 
 
