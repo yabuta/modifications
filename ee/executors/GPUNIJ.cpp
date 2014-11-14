@@ -261,9 +261,18 @@ bool GPUNIJ::join()
 
       ************************************************************************/
 
-      printf("jt_size = %d\n",jt_size);
+      printf("jt_size %d\n",jt_size);
 
-      if(jt_size<=0){
+      if(jt_size <0){
+        return false;
+      }else if(jt_size > 64*1024*1024){
+        printf("one time result size is over.\n");
+        return true;
+
+      }else if(total > 1024*1024*1024){
+        printf("result size is over.\n");
+        return true;
+      }else if(jt_size==0){
         total += jt_size;
         jt_size = 0;
       }else{

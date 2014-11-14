@@ -264,8 +264,6 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
       findexpressionData = false;
     }
 
-    GComparisonExpression GC(et);
-
     switch (et) {
     case (EXPRESSION_TYPE_COMPARE_EQUAL):
       lefttupleId =
@@ -434,7 +432,12 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
       }
 
       if(expressionmatch){
-      
+
+
+        /*
+          TO DO:this iterator is multi read for debug.
+          embed upper iterator loop.
+         */ 
         iterator0 = outer_table->iterator();
         iterator1 = inner_table->iterator();
         int j=0;
@@ -458,19 +461,48 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
           printf("innertable size = %d\n",j);
         }
 
+
+
         GPUNIJ *gn = new GPUNIJ();
 
         if(gn->initGPU()){
+
+          /*set table data: table size , GNValue ,expression*/
 
           if(lefttupleId == 0||(lefttupleId == -1&& righttupleId == -1)){
             gn->setTableData(left_GNV,right_GNV,outerSize,innerSize);
           }else{
             gn->setTableData(right_GNV,left_GNV,outerSize,innerSize);
+            switch(et){
+            case (EXPRESSION_TYPE_COMPARE_GREATERTHAN):
+              et = EXPRESSION_TYPE_COMPARE_LESSTHAN;
+              break;
+            case (EXPRESSION_TYPE_COMPARE_GREATERTHANOREQUALTO):
+              et = EXPRESSION_TYPE_COMPARE_LESSTHANOREQUALTO;
+              break;
+            case (EXPRESSION_TYPE_COMPARE_LESSTHAN):
+              et = EXPRESSION_TYPE_COMPARE_GREATERTHAN;
+              break;
+            case (EXPRESSION_TYPE_COMPARE_LESSTHANOREQUALTO):
+              et = EXPRESSION_TYPE_COMPARE_GREATERTHANOREQUALTO;
+              break;
+            default:
+              break;
+            }
           }
+
+          GComparisonExpression GC(et);
+          assert(GC);
           gn->setExpression(&GC);
 
           RESULT *jt = NULL;
           int jt_size = 0;
+
+          /*join
+            return:
+             matched left table and right table rows.             
+             result table size 
+           */
           if(gn->join()){              
             jt = gn->getResult();
             jt_size = gn->getResultSize();
@@ -483,6 +515,8 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
              qsort(jt,0,jt_size-1);
           */
 
+
+          /*insert result tuple*/
           for(int i=0; i < jt_size && (i<limit||limit==-1) ; i++){
             
             outer_tuple = tmpouter_tuple[jt[i].lkey];
