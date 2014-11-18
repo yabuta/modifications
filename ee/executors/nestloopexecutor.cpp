@@ -510,15 +510,12 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
             printf("join error.\n");
           }
 
-
-          /* quick sort 
-             qsort(jt,0,jt_size-1);
-          */
-
+          /* quick sort for debug */
+          //qsort(jt,0,jt_size-1);
 
           /*insert result tuple*/
           for(int i=0; i < jt_size && (i<limit||limit==-1) ; i++){
-            
+
             outer_tuple = tmpouter_tuple[jt[i].lkey];
             inner_tuple = tmpinner_tuple[jt[i].rkey];
             join_tuple.setNValues(0, outer_tuple, 0, outer_cols);
