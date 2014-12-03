@@ -1,4 +1,5 @@
 import os, sys, threading, shutil
+import subprocess # add part
 from subprocess import Popen, PIPE, STDOUT
 
 class BuildContext:
@@ -141,9 +142,22 @@ def buildMakefile(CTX):
     JNIEXT = CTX.JNIEXT.strip()
     NM = CTX.NM
     NMFLAGS = CTX.NMFLAGS
+
 #add part
+
+#get compute capability that need .cu file compile to .cubin file
+    subprocess.call(['make', '--directory=third_party/gpu/'])
+    p = subprocess.Popen ("third_party/gpu/check_cc", shell=True, stdin=subprocess.PIPE,
+                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                      close_fds=True)
+    ComCap = p.stdout.readline()
+    if "no CUDA capable GPU is detected..." in ComCap:
+        return False
+
+
     GPUFLAGS = "-lcuda -lstdc++ -lcudart -L/usr/local/cuda/lib64 -I/usr/local/cuda/include"
-    INCLUDE = "-I/usr/local/cuda/include -I../../src/ee/executors/ -I../../src/ee/ -I/usr/local/cuda/samples/6_Advanced/ -I/usr/local/cuda/samples/common/inc"
+    INCLUDE = "-I/usr/local/cuda/include -I../../src/ee/executors/ -I../../src/ee/ -I/usr/local/cuda/samples/6_Advanced/ -I/usr/local/cuda/samples/common/inc -isystem ../../third_party/cpp/ -lm"
+    GPUARCHFLAGS = "-arch sm_%s "%ComCap
     LOCALCPPFLAGS += " %s %s" % (GPUFLAGS,INCLUDE)
 #add part end
 
@@ -175,6 +189,8 @@ def buildMakefile(CTX):
     makefile.write("CXX = %s\n" % CTX.CXX)
     makefile.write("CPPFLAGS += %s\n" % (MAKECPPFLAGS))
     makefile.write("GPUFLAGS += %s\n" % (GPUFLAGS))     #add part
+    makefile.write("INCLUDE += %s\n" % (INCLUDE))       #add part
+    makefile.write("GPUARCHFLAGS += %s\n" % (GPUARCHFLAGS))       #add part
     makefile.write("LDFLAGS += %s\n" % (CTX.LDFLAGS))
     makefile.write("JNILIBFLAGS += %s\n" % (JNILIBFLAGS))
     makefile.write("JNIBINFLAGS += %s\n" % (JNIBINFLAGS))
@@ -183,7 +199,6 @@ def buildMakefile(CTX):
     makefile.write("THIRD_PARTY_SRC = ../../%s\n" % (THIRD_PARTY_INPUT_PREFIX))
     makefile.write("NM = %s\n" % (NM))
     makefile.write("NMFLAGS = %s\n" % (NMFLAGS))
-    makefile.write("INCLUDE += %s\n" % (INCLUDE))
 
     makefile.write("\n")
 
@@ -224,7 +239,7 @@ def buildMakefile(CTX):
 
     makefile.write("# main jnilib target\n")
 #    makefile.write("nativelibs/libvoltdb-%s.$(JNIEXT): " % version + " ".join(jni_objects) + "\n")  # add part
-    makefile.write("nativelibs/libvoltdb-%s.$(JNIEXT): " % version + " ".join(jni_objects) + " objects/executors/scan_main.co objects/executors/scan.co objects/executors/GPUNIJ.co" + "\n")  # add part
+    makefile.write("nativelibs/libvoltdb-%s.$(JNIEXT): " % version + " ".join(jni_objects) + " objects/executors/scan_main.co objects/executors/scan.co objects/executors/GPUNIJ.co objects/executors/GPUSHJ.co" + "\n")  # add part
     makefile.write("\t$(LINK.cpp) $(JNILIBFLAGS) $(GPUFLAGS) -o $@ $^\n")
     makefile.write("\n")
 
@@ -257,17 +272,29 @@ def buildMakefile(CTX):
     makefile.write("\n")
 
 
-    SCAN_PATH = "../../src/ee/executors/"
-    GPUPATH = " ../../src/ee/executors/GPUNIJ.h ../../src/ee/executors/GPUTUPLE.h ../../src/ee/GPUetc/common/GNValue.h ../../src/ee/GPUetc/expressions/Gcomparisonexpression.h"
-    makefile.write("objects/executors/scan.co:../../src/ee/executors/scan.cu %s\n"%GPUPATH)
-    makefile.write("\tnvcc $(INCLUDE) -Xcompiler '-fPIC' -arch sm_35 -c -o objects/executors/scan.co %sscan.cu\n"%(SCAN_PATH))    
-    makefile.write("objects/executors/join_gpu.cubin:../../src/ee/executors/join_gpu.cu %s\n"%GPUPATH)
-    makefile.write("\tnvcc $(INCLUDE) -isystem ../../third_party/cpp/ -arch sm_35 -cubin -o objects/executors/join_gpu.cubin %sjoin_gpu.cu\n"%(SCAN_PATH))
-    makefile.write("objects/executors/scan_main.co:../../src/ee/executors/scan_main.cpp %s\n"%GPUPATH)    
-    makefile.write("\tg++ $(INCLUDE) $(GPUFLAGS) -fPIC -o objects/executors/scan_main.co -c %sscan_main.cpp\n"%(SCAN_PATH))
-    makefile.write("objects/executors/GPUNIJ.co:../../src/ee/executors/GPUNIJ.cpp objects/executors/join_gpu.cubin objects/executors/scan.co %s\n"%GPUPATH)
-    makefile.write("\tg++ $(INCLUDE) $(GPUFLAGS) -isystem ../../third_party/cpp/ -fPIC -o objects/executors/GPUNIJ.co -c %sGPUNIJ.cpp\n"%(SCAN_PATH))
+#add part
+    GPUPATH = "../../src/ee/executors/"
+    GPUINC = " ../../src/ee/executors/GPUNIJ.h ../../src/ee/executors/GPUSHJ.h ../../src/ee/executors/GPUTUPLE.h ../../src/ee/GPUetc/common/GNValue.h ../../src/ee/GPUetc/expressions/Gcomparisonexpression.h"
+    
+#scan.cu ,join_gpu.cu ,hjoin_gpu.cu ,partitioning.cu
+    makefile.write("objects/executors/scan.co:../../src/ee/executors/scan.cu %s\n"%GPUINC)
+    makefile.write("\tnvcc $(INCLUDE) $(GPUARCHFLAGS) -Xcompiler '-fPIC' -c -o objects/executors/scan.co %sscan.cu\n"%(GPUPATH))    
+    makefile.write("objects/executors/join_gpu.cubin:../../src/ee/executors/join_gpu.cu %s\n"%GPUINC)
+    makefile.write("\tnvcc $(INCLUDE) $(GPUARCHFLAGS) -cubin -o objects/executors/join_gpu.cubin %sjoin_gpu.cu\n"%(GPUPATH))
+    makefile.write("objects/executors/hjoin_gpu.cubin:../../src/ee/executors/hjoin_gpu.cu %s\n"%GPUINC)
+    makefile.write("\tnvcc $(INCLUDE) $(GPUARCHFLAGS) -cubin -o objects/executors/hjoin_gpu.cubin %shjoin_gpu.cu\n"%(GPUPATH))
+    makefile.write("objects/executors/partitioning.cubin:../../src/ee/executors/partitioning.cu %s\n"%GPUINC)
+    makefile.write("\tnvcc $(INCLUDE) $(GPUARCHFLAGS) -cubin -o objects/executors/partitioning.cubin %spartitioning.cu\n"%(GPUPATH))
 
+#scan_main.cpp ,GPUNIJ.cpp ,GPUSHJ.cpp
+    makefile.write("objects/executors/scan_main.co:../../src/ee/executors/scan_main.cpp %s\n"%GPUINC)    
+    makefile.write("\tg++ $(INCLUDE) $(GPUFLAGS) -fPIC -o objects/executors/scan_main.co -c %sscan_main.cpp\n"%(GPUPATH))
+    makefile.write("objects/executors/GPUNIJ.co:../../src/ee/executors/GPUNIJ.cpp objects/executors/join_gpu.cubin objects/executors/scan.co %s\n"%GPUINC)
+    makefile.write("\tg++ $(INCLUDE) $(GPUFLAGS) -fPIC -o objects/executors/GPUNIJ.co -c %sGPUNIJ.cpp\n"%(GPUPATH))
+    makefile.write("objects/executors/GPUSHJ.co:../../src/ee/executors/GPUSHJ.cpp objects/executors/hjoin_gpu.cubin objects/executors/partitioning.cubin objects/executors/scan.co %s\n"%GPUINC)
+    makefile.write("\tg++ $(INCLUDE) $(GPUFLAGS) -fPIC -o objects/executors/GPUSHJ.co -c %sGPUSHJ.cpp\n"%(GPUPATH))
+
+#add part end
 
     LOCALTESTCPPFLAGS = LOCALCPPFLAGS + " -I%s" % (TEST_PREFIX)
     allsources = []
@@ -292,9 +319,9 @@ def buildMakefile(CTX):
             static_targetpath = OUTPUT_PREFIX + "/" + "/".join(static_objname.split("/")[:-1])
             os.system("mkdir -p %s" % (jni_targetpath))
             os.system("mkdir -p %s" % (static_targetpath))
-            makefile.write(jni_objname + ": " + filename + " " + " ".join(mydeps) + GPUPATH + "\n")
+            makefile.write(jni_objname + ": " + filename + " " + " ".join(mydeps) + GPUINC + "\n")
             makefile.write("\t$(CCACHE) $(COMPILE.cpp) $(GPUFLAGS) $(INCLUDE) %s -o $@ %s\n" % (CTX.EXTRAFLAGS, filename))
-            makefile.write(static_objname + ": " + filename + " " + " ".join(mydeps) + GPUPATH + "\n")
+            makefile.write(static_objname + ": " + filename + " " + " ".join(mydeps) + GPUINC + "\n")
             makefile.write("\t$(CCACHE) $(COMPILE.cpp) $(GPUFLAGS) $(INCLUDE) %s -o $@ %s\n" % (CTX.EXTRAFLAGS, filename))
             makefile.write("\n")
 #add part end

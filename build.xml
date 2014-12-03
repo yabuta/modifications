@@ -1185,6 +1185,12 @@ NATIVE EE STUFF
         <fileset dir="${build.dir}/objects/executors">
             <include name="join_gpu.cubin"/>
         </fileset>
+        <fileset dir="${build.dir}/objects/executors">
+            <include name="hjoin_gpu.cubin"/>
+        </fileset>
+        <fileset dir="${build.dir}/objects/executors">
+            <include name="partitioning.cubin"/>
+        </fileset>
     </copy>
 </target>
 
