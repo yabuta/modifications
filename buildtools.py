@@ -310,36 +310,21 @@ def buildMakefile(CTX):
 
     for filename in input_paths:
 #add part
-        if "nestloopexecutor.cpp" in filename:
-            mydeps = deps[filename]
-            mydeps = [x.replace(INPUT_PREFIX, "$(SRC)") for x in mydeps]
-            jni_objname, static_objname = outputNamesForSource(filename)
-            filename = filename.replace(INPUT_PREFIX, "$(SRC)")
-            jni_targetpath = OUTPUT_PREFIX + "/" + "/".join(jni_objname.split("/")[:-1])
-            static_targetpath = OUTPUT_PREFIX + "/" + "/".join(static_objname.split("/")[:-1])
-            os.system("mkdir -p %s" % (jni_targetpath))
-            os.system("mkdir -p %s" % (static_targetpath))
-            makefile.write(jni_objname + ": " + filename + " " + " ".join(mydeps) + GPUINC + "\n")
-            makefile.write("\t$(CCACHE) $(COMPILE.cpp) $(GPUFLAGS) $(INCLUDE) %s -o $@ %s\n" % (CTX.EXTRAFLAGS, filename))
-            makefile.write(static_objname + ": " + filename + " " + " ".join(mydeps) + GPUINC + "\n")
-            makefile.write("\t$(CCACHE) $(COMPILE.cpp) $(GPUFLAGS) $(INCLUDE) %s -o $@ %s\n" % (CTX.EXTRAFLAGS, filename))
-            makefile.write("\n")
+#        if "nestloopexecutor.cpp" in filename:
+        mydeps = deps[filename]
+        mydeps = [x.replace(INPUT_PREFIX, "$(SRC)") for x in mydeps]
+        jni_objname, static_objname = outputNamesForSource(filename)
+        filename = filename.replace(INPUT_PREFIX, "$(SRC)")
+        jni_targetpath = OUTPUT_PREFIX + "/" + "/".join(jni_objname.split("/")[:-1])
+        static_targetpath = OUTPUT_PREFIX + "/" + "/".join(static_objname.split("/")[:-1])
+        os.system("mkdir -p %s" % (jni_targetpath))
+        os.system("mkdir -p %s" % (static_targetpath))
+        makefile.write(jni_objname + ": " + filename + " " + " ".join(mydeps) + GPUINC + "\n")
+        makefile.write("\t$(CCACHE) $(COMPILE.cpp) $(GPUFLAGS) $(INCLUDE) %s -o $@ %s\n" % (CTX.EXTRAFLAGS, filename))
+        makefile.write(static_objname + ": " + filename + " " + " ".join(mydeps) + GPUINC + "\n")
+        makefile.write("\t$(CCACHE) $(COMPILE.cpp) $(GPUFLAGS) $(INCLUDE) %s -o $@ %s\n" % (CTX.EXTRAFLAGS, filename))
+        makefile.write("\n")
 #add part end
-        else:
-            mydeps = deps[filename]
-            mydeps = [x.replace(INPUT_PREFIX, "$(SRC)") for x in mydeps]
-            jni_objname, static_objname = outputNamesForSource(filename)
-            filename = filename.replace(INPUT_PREFIX, "$(SRC)")
-            jni_targetpath = OUTPUT_PREFIX + "/" + "/".join(jni_objname.split("/")[:-1])
-            static_targetpath = OUTPUT_PREFIX + "/" + "/".join(static_objname.split("/")[:-1])
-            os.system("mkdir -p %s" % (jni_targetpath))
-            os.system("mkdir -p %s" % (static_targetpath))
-            makefile.write(jni_objname + ": " + filename + " " + " ".join(mydeps) + "\n")
-            makefile.write("\t$(CCACHE) $(COMPILE.cpp) %s -o $@ %s\n" % (CTX.EXTRAFLAGS, filename))
-            makefile.write(static_objname + ": " + filename + " " + " ".join(mydeps) + "\n")
-            makefile.write("\t$(CCACHE) $(COMPILE.cpp) %s -o $@ %s\n" % (CTX.EXTRAFLAGS, filename))
-            makefile.write("\n")
-            
 
     for filename in third_party_input_paths:
         mydeps = deps[filename]
