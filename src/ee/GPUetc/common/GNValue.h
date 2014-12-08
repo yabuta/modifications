@@ -28,9 +28,8 @@
 #include <climits>
 #include <math.h>
 #include <cstdlib>
-#include <exception>
-#include <limits>
 #include <stdint.h>
+#include <limits.h>
 #include <string>
 #include <algorithm>
 #include <vector>
@@ -41,7 +40,8 @@
 #include "ttmath/ttmathint.h"
 #include "common/types.h"
 #include "common/value_defs.h"
-#include "../cudaheader.h"
+#include "GPUetc/common/Gvalue_defs.h"
+#include "GPUetc/cudaheader.h"
 
 
 
@@ -106,8 +106,56 @@ class GNValue {
     static const uint16_t kMaxDecScale = 12;
     static const int64_t kMaxScaleFactor = 1000000000000;
 
-    CUDAH int getHashValue(int shift, int partition){
+/**
+ * Retrieve a boolean NValue that is true
+ */
+    inline GNValue getTrue() {
+        GNValue retval(VALUE_TYPE_BOOLEAN);
+        retval.getBoolean() = true;
+        return retval;
+    }
 
+/**
+ * Retrieve a boolean NValue that is false
+ */
+    inline GNValue getFalse() {
+        GNValue retval(VALUE_TYPE_BOOLEAN);
+        retval.getBoolean() = false;
+        return retval;
+    }
+
+/**
+ * Returns C++ true if this NValue is a boolean and is true
+ * If it is NULL, return false.
+ */
+    inline CUDAH bool isTrue() const {
+        if (isBooleanNULL()) {
+            return false;
+        }
+        return getBoolean();
+    }
+
+/**
+ * Returns C++ false if this NValue is a boolean and is true
+ * If it is NULL, return false.
+ */
+    inline CUDAH bool isFalse() const {
+        if (isBooleanNULL()) {
+            return false;
+        }
+        return !getBoolean();
+    }
+
+    inline CUDAH bool isBooleanNULL() const {
+        assert(getValueType() == VALUE_TYPE_BOOLEAN);
+        return *reinterpret_cast<const int8_t*>(m_data) == INT8_NULL;
+    }
+
+
+
+    CUDAH int getHashValue(int shift, int partition){
+        assert(m_valueType != VALUE_TYPE_VARCHAR && m_valueType != VALUE_TYPE_VARBINARY && m_valueType != VALUE_TYPE_DECIMAL);
+        
         if(getValueType() == VALUE_TYPE_DOUBLE){
             int64_t integer;
             integer = reinterpret_cast<int64_t&>(getDouble());
@@ -159,6 +207,7 @@ class GNValue {
         return -1;//TODO: maybe -1 is worse value.
     }
 
+    CUDAH static GNValue initFromTupleStorage(const void *storage, ValueType type, bool isInlined);
 
     CUDAH void setMdata(const char *input){
         memcpy(m_data,input,16);
@@ -206,6 +255,8 @@ class GNValue {
         setValueType(type);
         m_sourceInlined = false;
     }
+
+    CUDAH void tagAsNull() { m_data[13] = OBJECT_NULL_BIT; }
 
 
     CUDAH const int8_t& getTinyInt() const {
@@ -272,6 +323,7 @@ class GNValue {
         return *reinterpret_cast<double*>(m_data);
     }
 
+/*
     CUDAH const TTInt& getDecimal() const {
         assert(getValueType() == VALUE_TYPE_DECIMAL);
         const void* retval = reinterpret_cast<const void*>(m_data);
@@ -283,6 +335,7 @@ class GNValue {
         void* retval = reinterpret_cast<void*>(m_data);
         return *reinterpret_cast<TTInt*>(retval);
     }
+*/
 
     CUDAH const bool& getBoolean() const {
         assert(getValueType() == VALUE_TYPE_BOOLEAN);
@@ -293,8 +346,6 @@ class GNValue {
         assert(getValueType() == VALUE_TYPE_BOOLEAN);
         return *reinterpret_cast<bool*>(m_data);
     }
-
-    CUDAH bool isBooleanNULL() const ;
 
 
     CUDAH int64_t castAsBigIntAndGetValue() const {
@@ -314,11 +365,10 @@ class GNValue {
         case VALUE_TYPE_TIMESTAMP:
             return getTimestamp();
         case VALUE_TYPE_DOUBLE:
-/*
-  if (getDouble() > (double)INT64_MAX || getDouble() < (double)VOLT_INT64_MIN) {
-  //throwCastSQLValueOutOfRangeException<double>(getDouble(), VALUE_TYPE_DOUBLE, VALUE_TYPE_BIGINT);
-  }
-*/
+            if (getDouble() > (double)LONG_MAX || getDouble() < (double)GVOLT_INT64_MIN) {
+                //throwCastSQLValueOutOfRangeException<double>(getDouble(), VALUE_TYPE_DOUBLE, VALUE_TYPE_BIGINT);
+                return 0;//TO DO: undefined return value.
+            }
             return static_cast<int64_t>(getDouble());
         case VALUE_TYPE_ADDRESS:
             return getBigInt();
@@ -370,12 +420,14 @@ class GNValue {
         // get the right hand side as a bigint
         if (rhs.getValueType() == VALUE_TYPE_DOUBLE) {
             return compareDoubleValue(static_cast<double>(getTinyInt()), rhs.getDouble());
+/*
         } 
         else if (rhs.getValueType() == VALUE_TYPE_DECIMAL) {
             const TTInt rhsValue = rhs.getDecimal();
             TTInt lhsValue(static_cast<int64_t>(getTinyInt()));
             lhsValue *= kMaxScaleFactor;
             return compareValue<TTInt>(lhsValue, rhsValue);        
+*/
         }else {
             int64_t lhsValue, rhsValue;
             lhsValue = static_cast<int64_t>(getTinyInt());
@@ -390,11 +442,13 @@ class GNValue {
         // get the right hand side as a bigint
         if (rhs.getValueType() == VALUE_TYPE_DOUBLE) {
             return compareDoubleValue(static_cast<double>(getSmallInt()), rhs.getDouble());
+/*
         } else if (rhs.getValueType() == VALUE_TYPE_DECIMAL) {
             const TTInt rhsValue = rhs.getDecimal();
             TTInt lhsValue(static_cast<int64_t>(getSmallInt()));
             lhsValue *= kMaxScaleFactor;
             return compareValue<TTInt>(lhsValue, rhsValue);
+*/
         } else {
             int64_t lhsValue, rhsValue;
             lhsValue = static_cast<int64_t>(getSmallInt());
@@ -409,11 +463,13 @@ class GNValue {
         // get the right hand side as a bigint
         if (rhs.getValueType() == VALUE_TYPE_DOUBLE) {
             return compareDoubleValue(static_cast<double>(getInteger()), rhs.getDouble());
+/*
         } else if (rhs.getValueType() == VALUE_TYPE_DECIMAL){
             const TTInt rhsValue = rhs.getDecimal();
             TTInt lhsValue(static_cast<int64_t>(getInteger()));
             lhsValue *= kMaxScaleFactor;
             return compareValue<TTInt>(lhsValue, rhsValue);
+*/
         } else {
             int64_t lhsValue, rhsValue;
             lhsValue = static_cast<int64_t>(getInteger());
@@ -430,11 +486,13 @@ class GNValue {
         // get the right hand side as a bigint
         if (rhs.getValueType() == VALUE_TYPE_DOUBLE) {
             return compareDoubleValue(static_cast<double>(getBigInt()), rhs.getDouble());
+/*
         } else if (rhs.getValueType() == VALUE_TYPE_DECIMAL) {
             const TTInt rhsValue = rhs.getDecimal();
             TTInt lhsValue(getBigInt());
             lhsValue *= kMaxScaleFactor;
             return compareValue<TTInt>(lhsValue, rhsValue);
+*/
         } else {
             int64_t lhsValue, rhsValue;
             lhsValue = getBigInt();
@@ -449,11 +507,13 @@ class GNValue {
         // get the right hand side as a bigint
         if (rhs.getValueType() == VALUE_TYPE_DOUBLE) {
             return compareDoubleValue(static_cast<double>(getTimestamp()), rhs.getDouble());
+/*
         }else if (rhs.getValueType() == VALUE_TYPE_DECIMAL) {
             const TTInt rhsValue = rhs.getDecimal();
             TTInt lhsValue(getTimestamp());
             lhsValue *= kMaxScaleFactor;
             return compareValue<TTInt>(lhsValue, rhsValue);
+*/
         } else {
             int64_t lhsValue, rhsValue;
             lhsValue = getTimestamp();
@@ -485,6 +545,7 @@ class GNValue {
             rhsValue = static_cast<double>(rhs.getTimestamp()); break;
         case VALUE_TYPE_DECIMAL:
         {
+/*
             TTInt scaledValue = rhs.getDecimal();
             TTInt whole(scaledValue);
             TTInt fractional(scaledValue);
@@ -493,6 +554,7 @@ class GNValue {
             rhsValue = static_cast<double>(whole.ToInt()) +
                 (static_cast<double>(fractional.ToInt())/static_cast<double>(kMaxScaleFactor));
             break;
+*/
 
         }
         default:
@@ -503,7 +565,7 @@ class GNValue {
         return compareDoubleValue(lhsValue, rhsValue);
     }
 
-
+/*
     CUDAH int compareDecimalValue (const GNValue rhs) const {
 
         assert(m_valueType == VALUE_TYPE_DECIMAL);
@@ -564,7 +626,7 @@ class GNValue {
         }
     }
 
-
+*/
 
 };
 
@@ -578,14 +640,65 @@ inline CUDAH GNValue::GNValue() {
     m_sourceInlined = false;
 }
 
+/**
+ * Initialize an NValue of the specified type from the tuple
+ * storage area provided. If this is an Object type then the third
+ * argument indicates whether the object is stored in the tuple inline.
+ */
+inline CUDAH GNValue GNValue::initFromTupleStorage(const void *storage, ValueType type, bool isInlined)
+{
+
+    assert(type != VALUE_TYPE_VARCHAR && type != VALUE_TYPE_VARBINARY && type != VALUE_TYPE_DECIMAL);
+
+    GNValue retval(type);
+    switch (type)
+    {
+    case VALUE_TYPE_INTEGER:
+        if ((retval.getInteger() = *reinterpret_cast<const int32_t*>(storage)) == GINT32_NULL) {
+            retval.tagAsNull();
+        }
+        break;
+    case VALUE_TYPE_BIGINT:
+        if ((retval.getBigInt() = *reinterpret_cast<const int64_t*>(storage)) == GINT64_NULL) {
+            retval.tagAsNull();
+        }
+        break;
+    case VALUE_TYPE_DOUBLE:
+        if ((retval.getDouble() = *reinterpret_cast<const double*>(storage)) <= GDOUBLE_NULL) {
+            retval.tagAsNull();
+        }
+        break;
+    case VALUE_TYPE_TIMESTAMP:
+        if ((retval.getTimestamp() = *reinterpret_cast<const int64_t*>(storage)) == GINT64_NULL) {
+            retval.tagAsNull();
+        }
+        break;
+    case VALUE_TYPE_TINYINT:
+        if ((retval.getTinyInt() = *reinterpret_cast<const int8_t*>(storage)) == GINT8_NULL) {
+            retval.tagAsNull();
+        }
+        break;
+    case VALUE_TYPE_SMALLINT:
+        if ((retval.getSmallInt() = *reinterpret_cast<const int16_t*>(storage)) == GINT16_NULL) {
+            retval.tagAsNull();
+        }
+        break;
+    case VALUE_TYPE_VARCHAR:
+    case VALUE_TYPE_VARBINARY:
+    case VALUE_TYPE_DECIMAL:
+    default:
+        retval.tagAsNull();
+    }
+
+    return retval;
+}
 
 
 inline CUDAH int GNValue::compare_withoutNull(const GNValue rhs) const {
     assert(isNull() == false && rhs.isNull() == false);
+    assert(m_valueType != VALUE_TYPE_VARCHAR && m_valueType != VALUE_TYPE_VARBINARY && m_valueType != VALUE_TYPE_DECIMAL);
 
     switch (m_valueType) {
-    case VALUE_TYPE_VARCHAR:
-        return -3;//compareStringValue(rhs);
     case VALUE_TYPE_BIGINT:
         return compareBigInt(rhs);
     case VALUE_TYPE_INTEGER:
@@ -598,12 +711,12 @@ inline CUDAH int GNValue::compare_withoutNull(const GNValue rhs) const {
         return compareTimestamp(rhs);
     case VALUE_TYPE_DOUBLE:
         return compareDoubleValue(rhs);
-/*
-  case VALUE_TYPE_VARBINARY:
-  return compareBinaryValue(rhs);
-*/
-  case VALUE_TYPE_DECIMAL:
-        return compareDecimalValue(rhs);
+    case VALUE_TYPE_VARCHAR:
+        //return compareStringValue(rhs);
+    case VALUE_TYPE_VARBINARY:
+        //return compareBinaryValue(rhs);
+    case VALUE_TYPE_DECIMAL:
+        //return compareDecimalValue(rhs);
 
     default: {
         /*
@@ -620,7 +733,10 @@ inline CUDAH int GNValue::compare_withoutNull(const GNValue rhs) const {
 
 
 
+
 inline CUDAH bool GNValue::isNull() const {
+
+    assert(m_valueType != VALUE_TYPE_VARCHAR && m_valueType != VALUE_TYPE_VARBINARY && m_valueType != VALUE_TYPE_DECIMAL);
 /*
     if (getValueType() == VALUE_TYPE_DECIMAL) {
         TTInt min;

@@ -42,7 +42,7 @@ bool GPUSHJ::initGPU(){
 
   /******************** GPU init here ************************************************/
   //GPU仕様のために
-  /*
+
   res = cuInit(0);
   if (res != CUDA_SUCCESS) {
     printf("cuInit failed: res = %lu\n", (unsigned long)res);
@@ -58,7 +58,7 @@ bool GPUSHJ::initGPU(){
     printf("cuCtxCreate failed: res = %lu\n", (unsigned long)res);
     return false;
   }
-  */
+
   /*********************************************************************************/
 
 
@@ -125,12 +125,10 @@ void GPUSHJ::finish(){
     printf("cuModuleUnload module failed: res = %lu\n", (unsigned long)res);
   }  
 
-  /*
   res = cuCtxDestroy(ctx);
   if (res != CUDA_SUCCESS) {
     printf("cuCtxDestroy failed: res = %lu\n", (unsigned long)res);
   }
-  */
   
 }
 

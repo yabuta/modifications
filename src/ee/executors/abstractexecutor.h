@@ -92,6 +92,10 @@ class AbstractExecutor {
         }
     }
 
+    virtual void cleanupMemoryPool() {
+        // LEAVE as blank on purpose
+    }
+
   protected:
     AbstractExecutor(VoltDBEngine* engine, AbstractPlanNode* abstractNode) {
         m_abstractNode = abstractNode;
@@ -125,8 +129,6 @@ class AbstractExecutor {
     /** reference to the engine to call up to the top end */
     VoltDBEngine* m_engine;
 };
-
-
 
 
 inline bool AbstractExecutor::execute(const NValueArray& params)

@@ -90,10 +90,8 @@ private:
     int PART;
 
     CUresult res;
-/*
     CUdevice dev;
     CUcontext ctx;
-*/
     CUfunction function,c_function;
     CUmodule module,c_module;
     

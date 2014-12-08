@@ -241,10 +241,10 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
     int lefttupleId=-1;
     int righttupleId=-1;
 
-    NValue ltempNV,rtempNV;
+    NValue otempNV,itempNV;
     bool findexpressionData = true;
     bool expressionmatch = true;
-    COLUMNDATA *left_CD=NULL,*right_CD=NULL;
+    COLUMNDATA *outer_CD=NULL,*inner_CD=NULL;
     TableTuple *tmpouter_tuple=NULL,*tmpinner_tuple=NULL;
     bool outerread = false,innerread = false;
 
@@ -321,130 +321,130 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
     */
     if(findexpressionData){
       if(lefttupleId == 0 && righttupleId == 1){
-        left_CD = (COLUMNDATA *)malloc(outerSize*sizeof(COLUMNDATA));
-        right_CD = (COLUMNDATA *)malloc(innerSize*sizeof(COLUMNDATA));
+        outer_CD = (COLUMNDATA *)malloc(outerSize*sizeof(COLUMNDATA));
+        inner_CD = (COLUMNDATA *)malloc(innerSize*sizeof(COLUMNDATA));
         while(iterator0.next(outer_tuple)){
           switch (et) {
           case (EXPRESSION_TYPE_COMPARE_EQUAL):
-            ltempNV = (dynamic_cast<ComparisonExpression<CmpEq> *>(joinPredicate))->getLeftNV(&outer_tuple,&inner_tuple);
+            otempNV = (dynamic_cast<ComparisonExpression<CmpEq> *>(joinPredicate))->getLeftNV(&outer_tuple,&inner_tuple);
             break;
           case (EXPRESSION_TYPE_COMPARE_NOTEQUAL):
-            ltempNV = (dynamic_cast<ComparisonExpression<CmpNe> *>(joinPredicate))->getLeftNV(&outer_tuple,&inner_tuple);
+            otempNV = (dynamic_cast<ComparisonExpression<CmpNe> *>(joinPredicate))->getLeftNV(&outer_tuple,&inner_tuple);
             break;
           case (EXPRESSION_TYPE_COMPARE_LESSTHAN):
-            ltempNV = (dynamic_cast<ComparisonExpression<CmpLt> *>(joinPredicate))->getLeftNV(&outer_tuple,&inner_tuple);
+            otempNV = (dynamic_cast<ComparisonExpression<CmpLt> *>(joinPredicate))->getLeftNV(&outer_tuple,&inner_tuple);
             break;
           case (EXPRESSION_TYPE_COMPARE_GREATERTHAN):
-            ltempNV = (dynamic_cast<ComparisonExpression<CmpGt> *>(joinPredicate))->getLeftNV(&outer_tuple,&inner_tuple);
+            otempNV = (dynamic_cast<ComparisonExpression<CmpGt> *>(joinPredicate))->getLeftNV(&outer_tuple,&inner_tuple);
             break;
           case (EXPRESSION_TYPE_COMPARE_LESSTHANOREQUALTO):
-            ltempNV = (dynamic_cast<ComparisonExpression<CmpLte> *>(joinPredicate))->getLeftNV(&outer_tuple,&inner_tuple);
+            otempNV = (dynamic_cast<ComparisonExpression<CmpLte> *>(joinPredicate))->getLeftNV(&outer_tuple,&inner_tuple);
             break;
           case (EXPRESSION_TYPE_COMPARE_GREATERTHANOREQUALTO):
-            ltempNV = (dynamic_cast<ComparisonExpression<CmpGte> *>(joinPredicate))->getLeftNV(&outer_tuple,&inner_tuple);
+            otempNV = (dynamic_cast<ComparisonExpression<CmpGte> *>(joinPredicate))->getLeftNV(&outer_tuple,&inner_tuple);
             break;
           default:
             expressionmatch = false;
           }
-          setGNValue(&left_CD[i],ltempNV);
-          left_CD[i].num = i;
+          setGNValue(&outer_CD[i],otempNV);
+          outer_CD[i].num = i;
           i++;
         }
         i=0;
         while(iterator1.next(inner_tuple)){
           switch (et) {
           case (EXPRESSION_TYPE_COMPARE_EQUAL):
-            rtempNV = (dynamic_cast<ComparisonExpression<CmpEq> *>(joinPredicate))->getRightNV(&outer_tuple,&inner_tuple);
+            itempNV = (dynamic_cast<ComparisonExpression<CmpEq> *>(joinPredicate))->getRightNV(&outer_tuple,&inner_tuple);
             break;
           case (EXPRESSION_TYPE_COMPARE_NOTEQUAL):
-            rtempNV = (dynamic_cast<ComparisonExpression<CmpNe> *>(joinPredicate))->getRightNV(&outer_tuple,&inner_tuple);
+            itempNV = (dynamic_cast<ComparisonExpression<CmpNe> *>(joinPredicate))->getRightNV(&outer_tuple,&inner_tuple);
             break;
           case (EXPRESSION_TYPE_COMPARE_LESSTHAN):
-            rtempNV = (dynamic_cast<ComparisonExpression<CmpLt> *>(joinPredicate))->getRightNV(&outer_tuple,&inner_tuple);
+            itempNV = (dynamic_cast<ComparisonExpression<CmpLt> *>(joinPredicate))->getRightNV(&outer_tuple,&inner_tuple);
             break;
           case (EXPRESSION_TYPE_COMPARE_GREATERTHAN):
-            rtempNV = (dynamic_cast<ComparisonExpression<CmpGt> *>(joinPredicate))->getRightNV(&outer_tuple,&inner_tuple);
+            itempNV = (dynamic_cast<ComparisonExpression<CmpGt> *>(joinPredicate))->getRightNV(&outer_tuple,&inner_tuple);
             break;
           case (EXPRESSION_TYPE_COMPARE_LESSTHANOREQUALTO):
-            rtempNV = (dynamic_cast<ComparisonExpression<CmpLte> *>(joinPredicate))->getRightNV(&outer_tuple,&inner_tuple);
+            itempNV = (dynamic_cast<ComparisonExpression<CmpLte> *>(joinPredicate))->getRightNV(&outer_tuple,&inner_tuple);
             break;
           case (EXPRESSION_TYPE_COMPARE_GREATERTHANOREQUALTO):
-            rtempNV = (dynamic_cast<ComparisonExpression<CmpGte> *>(joinPredicate))->getRightNV(&outer_tuple,&inner_tuple);
+            itempNV = (dynamic_cast<ComparisonExpression<CmpGte> *>(joinPredicate))->getRightNV(&outer_tuple,&inner_tuple);
             break;
           default:
             expressionmatch = false;
           }          
-          setGNValue(&right_CD[i],rtempNV);
-          right_CD[i].num = i;
+          setGNValue(&inner_CD[i],itempNV);
+          inner_CD[i].num = i;
           i++;
         }
       }else if(lefttupleId == 1 && righttupleId == 0){
-        left_CD = (COLUMNDATA *)malloc(innerSize*sizeof(COLUMNDATA));
-        right_CD = (COLUMNDATA *)malloc(outerSize*sizeof(COLUMNDATA));
+        outer_CD = (COLUMNDATA *)malloc(outerSize*sizeof(COLUMNDATA));
+        inner_CD = (COLUMNDATA *)malloc(innerSize*sizeof(COLUMNDATA));
         while(iterator1.next(inner_tuple)){
           switch (et) {
           case (EXPRESSION_TYPE_COMPARE_EQUAL):
-            ltempNV = (dynamic_cast<ComparisonExpression<CmpEq> *>(joinPredicate))->getLeftNV(&outer_tuple,&inner_tuple);
+            itempNV = (dynamic_cast<ComparisonExpression<CmpEq> *>(joinPredicate))->getLeftNV(&outer_tuple,&inner_tuple);
             break;
           case (EXPRESSION_TYPE_COMPARE_NOTEQUAL):
-            ltempNV = (dynamic_cast<ComparisonExpression<CmpNe> *>(joinPredicate))->getLeftNV(&outer_tuple,&inner_tuple);
+            itempNV = (dynamic_cast<ComparisonExpression<CmpNe> *>(joinPredicate))->getLeftNV(&outer_tuple,&inner_tuple);
             break;
           case (EXPRESSION_TYPE_COMPARE_LESSTHAN):
-            ltempNV = (dynamic_cast<ComparisonExpression<CmpLt> *>(joinPredicate))->getLeftNV(&outer_tuple,&inner_tuple);
+            itempNV = (dynamic_cast<ComparisonExpression<CmpLt> *>(joinPredicate))->getLeftNV(&outer_tuple,&inner_tuple);
             break;
           case (EXPRESSION_TYPE_COMPARE_GREATERTHAN):
-            ltempNV = (dynamic_cast<ComparisonExpression<CmpGt> *>(joinPredicate))->getLeftNV(&outer_tuple,&inner_tuple);
+            itempNV = (dynamic_cast<ComparisonExpression<CmpGt> *>(joinPredicate))->getLeftNV(&outer_tuple,&inner_tuple);
             break;
           case (EXPRESSION_TYPE_COMPARE_LESSTHANOREQUALTO):
-            ltempNV = (dynamic_cast<ComparisonExpression<CmpLte> *>(joinPredicate))->getLeftNV(&outer_tuple,&inner_tuple);
+            itempNV = (dynamic_cast<ComparisonExpression<CmpLte> *>(joinPredicate))->getLeftNV(&outer_tuple,&inner_tuple);
             break;
           case (EXPRESSION_TYPE_COMPARE_GREATERTHANOREQUALTO):
-            ltempNV = (dynamic_cast<ComparisonExpression<CmpGte> *>(joinPredicate))->getLeftNV(&outer_tuple,&inner_tuple);
+            itempNV = (dynamic_cast<ComparisonExpression<CmpGte> *>(joinPredicate))->getLeftNV(&outer_tuple,&inner_tuple);
             break;
           default:
             expressionmatch = false;
           }
-          setGNValue(&left_CD[i],ltempNV);
-          left_CD[i].num = i;
+          setGNValue(&inner_CD[i],itempNV);
+          inner_CD[i].num = i;
           i++;
         }
         i=0;
         while(iterator0.next(outer_tuple)){
           switch (et) {
           case (EXPRESSION_TYPE_COMPARE_EQUAL):
-            rtempNV = (dynamic_cast<ComparisonExpression<CmpEq> *>(joinPredicate))->getRightNV(&outer_tuple,&inner_tuple);
+            otempNV = (dynamic_cast<ComparisonExpression<CmpEq> *>(joinPredicate))->getRightNV(&outer_tuple,&inner_tuple);
             break;
           case (EXPRESSION_TYPE_COMPARE_NOTEQUAL):
-            rtempNV = (dynamic_cast<ComparisonExpression<CmpNe> *>(joinPredicate))->getRightNV(&outer_tuple,&inner_tuple);
+            otempNV = (dynamic_cast<ComparisonExpression<CmpNe> *>(joinPredicate))->getRightNV(&outer_tuple,&inner_tuple);
             break;
           case (EXPRESSION_TYPE_COMPARE_LESSTHAN):
-            rtempNV = (dynamic_cast<ComparisonExpression<CmpLt> *>(joinPredicate))->getRightNV(&outer_tuple,&inner_tuple);
+            otempNV = (dynamic_cast<ComparisonExpression<CmpLt> *>(joinPredicate))->getRightNV(&outer_tuple,&inner_tuple);
             break;
           case (EXPRESSION_TYPE_COMPARE_GREATERTHAN):
-            rtempNV = (dynamic_cast<ComparisonExpression<CmpGt> *>(joinPredicate))->getRightNV(&outer_tuple,&inner_tuple);
+            otempNV = (dynamic_cast<ComparisonExpression<CmpGt> *>(joinPredicate))->getRightNV(&outer_tuple,&inner_tuple);
             break;
           case (EXPRESSION_TYPE_COMPARE_LESSTHANOREQUALTO):
-            rtempNV = (dynamic_cast<ComparisonExpression<CmpLte> *>(joinPredicate))->getRightNV(&outer_tuple,&inner_tuple);
+            otempNV = (dynamic_cast<ComparisonExpression<CmpLte> *>(joinPredicate))->getRightNV(&outer_tuple,&inner_tuple);
             break;
           case (EXPRESSION_TYPE_COMPARE_GREATERTHANOREQUALTO):
-            rtempNV = (dynamic_cast<ComparisonExpression<CmpGte> *>(joinPredicate))->getRightNV(&outer_tuple,&inner_tuple);
+            otempNV = (dynamic_cast<ComparisonExpression<CmpGte> *>(joinPredicate))->getRightNV(&outer_tuple,&inner_tuple);
             break;
           default:
             expressionmatch = false;
           }
-          setGNValue(&right_CD[i],rtempNV);
-          right_CD[i].num = i;
+          setGNValue(&outer_CD[i],otempNV);
+          outer_CD[i].num = i;
           i++;
         }
 
       }else if(lefttupleId == -1 && righttupleId == -1){
-        left_CD = (COLUMNDATA *)calloc(outerSize,sizeof(COLUMNDATA));
-        right_CD = (COLUMNDATA *)calloc(innerSize,sizeof(COLUMNDATA));
+        outer_CD = (COLUMNDATA *)calloc(outerSize,sizeof(COLUMNDATA));
+        inner_CD = (COLUMNDATA *)calloc(innerSize,sizeof(COLUMNDATA));
         for(int i=0; i<outerSize ; i++){
-          left_CD[i].num = i;
+          outer_CD[i].num = i;
         }
         for(int i=0; i<innerSize ; i++){
-          right_CD[i].num = i;
+          inner_CD[i].num = i;
         }
       }
 
@@ -497,7 +497,7 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
         if(gpuflag){
 
           /*set table data: table size , GNValue ,expression*/
-          gn->setTableData(left_CD,right_CD,outerSize,innerSize);
+          gn->setTableData(outer_CD,inner_CD,outerSize,innerSize);
 
           RESULT *jt = NULL;
           int jt_size = 0;
@@ -519,22 +519,15 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
 
           /*insert result tuple*/
           for(int i=0; i < jt_size && (i<limit||limit==-1) ; i++){
-            
-            //If lefttupleId == 0 or -1, outer tuple is lkey.
-            if(lefttupleId == 0||(lefttupleId == -1&& righttupleId == -1)){
-              outer_tuple = tmpouter_tuple[jt[i].lkey];
-              inner_tuple = tmpinner_tuple[jt[i].rkey];
-            }else{
-              outer_tuple = tmpouter_tuple[jt[i].rkey];
-              inner_tuple = tmpinner_tuple[jt[i].lkey];
-            }
-            join_tuple.setNValues(0, outer_tuple, 0, outer_cols);
-            join_tuple.setNValues(outer_cols, inner_tuple, 0, inner_cols);
-
 
             if (jt_size < offset) {
               continue;
-            }
+            } 
+           
+            //If lefttupleId == 0 or -1, outer tuple is lkey.
+            join_tuple.setNValues(0, tmpouter_tuple[jt[i].lkey], 0, outer_cols);
+            join_tuple.setNValues(outer_cols, tmpinner_tuple[jt[i].rkey], 0, inner_cols);
+
             if (m_aggExec != NULL) {
               if (m_aggExec->p_execute_tuple(join_tuple)) {
                 break;
