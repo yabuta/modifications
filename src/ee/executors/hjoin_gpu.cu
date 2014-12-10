@@ -23,10 +23,12 @@ void count(
 {
 
   int x = blockIdx.x * blockDim.x + threadIdx.x;  
+
+
   if(x < left){
 
+    //caution : success for some reason. Not unuse if 
     GNValue tlgnv;
-
     if(x == left-1){
       tlgnv = lt[x].gn;
     }else{

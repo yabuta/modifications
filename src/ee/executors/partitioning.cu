@@ -50,6 +50,7 @@ void rcount_partitioning(
   if(x < t_n){
 
     for(uint i=0; i<RIGHT_PER_TH&&(DEF+threadIdx.x*RIGHT_PER_TH+i)<rows_n; i++){
+      //caution : success for some reason. Not t[hoge].gn.getHashValue
       tt = t[DEF+threadIdx.x*RIGHT_PER_TH+i];
       hash = tt.gn.getHashValue( loop*RADIX , p_n);
       if(hash == -1) return;
@@ -57,7 +58,7 @@ void rcount_partitioning(
       
     }
     for(uint j=0 ; j*Dim+threadIdx.x<p_n*Dim ; j++){
-      L[t_n*j + blockIdx.x*Dim + threadIdx.x] = part[j*Dim+threadIdx.x];
+      L[t_n*j + blockIdx.x*blockDim.x + threadIdx.x] = part[j*Dim+threadIdx.x];
     }
   }
 }
@@ -88,7 +89,7 @@ void rpartitioning(
 
   __shared__ int part[SHARED_MAX];
   for(uint j=0 ; j*Dim+threadIdx.x<p_n*Dim ; j++){
-    part[j*Dim+threadIdx.x]=L[t_n*j+blockIdx.x*Dim+threadIdx.x];
+    part[j*Dim+threadIdx.x]=L[t_n*j+blockIdx.x*blockDim.x+threadIdx.x];
   }
   
   __syncthreads();
@@ -101,10 +102,11 @@ void rpartitioning(
   if(x < t_n){
 
     for(uint i=0; i<RIGHT_PER_TH&&(DEF+threadIdx.x*RIGHT_PER_TH+i)<rows_n; i++){
-        tt = t[DEF+threadIdx.x*RIGHT_PER_TH+i];
-        hash = tt.gn.getHashValue( loop*RADIX , p_n);
-        temp = part[hash*Dim + threadIdx.x]++;
-        pt[temp] = tt;
+      //caution : success for some reason
+      tt = t[DEF+threadIdx.x*RIGHT_PER_TH+i];
+      hash = tt.gn.getHashValue( loop*RADIX , p_n);
+      temp = part[hash*Dim + threadIdx.x]++;
+      pt[temp] = tt;
     } 
   }
 
@@ -121,6 +123,8 @@ void countPartition(
 
   int x = blockIdx.x*blockDim.x + threadIdx.x;
   if(x<rows_num){
+
+    //caution : success for some reason. Not t[hoge].gn.getHashValue
     GNValue tt;
     tt = t[x].gn;
     int p; 
@@ -129,7 +133,7 @@ void countPartition(
   }
 
   if(x==rows_num-1){
-    startpos[x+1]=0;
+    startpos[p_num+1]=0;
   }
 
 

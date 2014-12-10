@@ -50,7 +50,7 @@ uint presum(CUdeviceptr *d_Input, uint arrayLength)
     initScan();
     //size_t szWorkgroup;
 
-    if(arrayLength <= MIN_SHORT_ARRAY_SIZE){
+    if(arrayLength <= MIN_SHORT_ARRAY_SIZE && arrayLength > 0){
 
       N = 5;
 
@@ -70,6 +70,9 @@ uint presum(CUdeviceptr *d_Input, uint arrayLength)
             break;
           }
         }
+
+        printf("N = %d\n",N);
+
         checkCudaErrors(cudaMalloc((void **)&d_Output, N * sizeof(uint)));
 
         checkCudaErrors(cudaDeviceSynchronize());
@@ -81,6 +84,8 @@ uint presum(CUdeviceptr *d_Input, uint arrayLength)
     }else if(arrayLength <= MAX_LARGE_ARRAY_SIZE){
 
       N = MAX_SHORT_ARRAY_SIZE * iDivUp(arrayLength,MAX_SHORT_ARRAY_SIZE);
+
+      printf("N = %d\n",N);
 
       checkCudaErrors(cudaMalloc((void **)&d_Output, N * sizeof(uint)));      
       

@@ -8,14 +8,16 @@
 
 using namespace voltdb;
 
-extern "C" {
+/**
+count() is counting match tuple.
+And in CPU, caluculate starting position using scan.
+finally join() store match tuple to result array .
 
-  /**
-     called function is changed by join condition.
-     
-     if T1.val = T2.val, iocount and iojoin is called.
-     if T.val1 = T.val2 , iicount and iijoin is called.
-   */
+*/
+
+
+
+extern "C" {
 
 
 __global__
@@ -33,24 +35,27 @@ void count(
   int i = blockIdx.x * blockDim.x + threadIdx.x;
   int k = blockIdx.y * gridDim.x * blockDim.x;
 
+  __shared__ COLUMNDATA tiCD[BLOCK_SIZE_Y];
+  if(threadIdx.x==0){
+    for(uint j=0 ; j<BLOCK_SIZE_Y && BLOCK_SIZE_Y*blockIdx.y+j<rtn ; j++){
+      tiCD[j] = iCD[BLOCK_SIZE_Y*blockIdx.y + j];
+    }
+  }
+  __syncthreads();
+
+  count[i+k] = 0;
+
   if(i<ltn){
 
-    __shared__ COLUMNDATA tiCD[BLOCK_SIZE_Y];
-    if(threadIdx.x==0){
-      for(uint j=0 ; j<BLOCK_SIZE_Y && BLOCK_SIZE_Y*blockIdx.y+j<rtn ; j++){
-        tiCD[j] = iCD[BLOCK_SIZE_Y*blockIdx.y + j];
-      }
-    }
 
-    __syncthreads();
-
+    //A global memory read is very slow.So repeating values is stored register memory
     COLUMNDATA toCD=oCD[i];
     int rtn_g = rtn;
     int mcount = 0;
     for(uint j = 0; j<BLOCK_SIZE_Y && BLOCK_SIZE_Y*blockIdx.y+j<rtn_g;j++){
-      if(ex.eval(toCD.gn,tiCD[j].gn)) {
+      if(ex.eval(toCD.gn,tiCD[j].gn)){
         mcount++;
-      }     
+      }
     }
 
     count[i+k] = mcount;
@@ -79,14 +84,15 @@ __global__ void join(
   int i = blockIdx.x * blockDim.x + threadIdx.x;
   int k = blockIdx.y * gridDim.x * blockDim.x;
 
-  if(i<ltn){
-    __shared__ COLUMNDATA tiCD[BLOCK_SIZE_Y];
-    if(threadIdx.x==0){
-      for(uint j=0 ; j<BLOCK_SIZE_Y && BLOCK_SIZE_Y*blockIdx.y+j<rtn ; j++){
-        tiCD[j] = iCD[BLOCK_SIZE_Y*blockIdx.y + j];
-      }
+  __shared__ COLUMNDATA tiCD[BLOCK_SIZE_Y];
+  if(threadIdx.x==0){
+    for(uint j=0 ; j<BLOCK_SIZE_Y && BLOCK_SIZE_Y*blockIdx.y+j<rtn ; j++){
+      tiCD[j] = iCD[BLOCK_SIZE_Y*blockIdx.y + j];
     }
-    __syncthreads();
+  }
+  __syncthreads();
+
+  if(i<ltn){
 
     COLUMNDATA toCD = oCD[i];
     int rtn_g = rtn;

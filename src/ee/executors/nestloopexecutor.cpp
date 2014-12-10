@@ -483,7 +483,7 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
 
         //GPUNIJ *gn = new GPUNIJ();
 
-        GPUNIJ *gn = new GPUNIJ();
+        GPUSHJ *gn = new GPUSHJ();
         GComparisonExpression GC(et);
         assert(GC);
 

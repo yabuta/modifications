@@ -205,14 +205,17 @@ bool GPUNIJ::join()
       grid_x = lls / block_x;
       if (lls % block_x != 0)
         grid_x++;
+
+      //thread of axial y is fixed 1. 
       grid_y = rrs / block_y;
       if (rrs % block_y != 0)
         grid_y++;
       block_y = 1;
 
+
       printf("\nStarting...\nll = %d\trr = %d\tlls = %d\trrs = %d\n",ll,rr,lls,rrs);
       printf("grid_x = %d\tgrid_y = %d\tblock_x = %d\tblock_y = %d\n",grid_x,grid_y,block_x,block_y);
-      gpu_size = grid_x * grid_y * block_x * block_y + 1;
+      gpu_size = grid_x * grid_y * block_x + 1;
       printf("gpu_size = %d\n",gpu_size);
 
 
@@ -243,7 +246,7 @@ bool GPUNIJ::join()
                            grid_y,        // gridDimY
                            1,             // gridDimZ
                            block_x,       // blockDimX
-                           block_y,       // blockDimY
+                           1,       // blockDimY
                            1,             // blockDimZ
                            0,             // sharedMemBytes
                            NULL,          // hStream
@@ -319,7 +322,7 @@ bool GPUNIJ::join()
                              grid_y,        // gridDimY
                              1,             // gridDimZ
                              block_x,       // blockDimX
-                             block_y,       // blockDimY
+                             1,       // blockDimY
                              1,             // blockDimZ
                              0,             // sharedMemBytes
                              NULL,          // hStream
