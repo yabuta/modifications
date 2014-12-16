@@ -14,7 +14,7 @@ __global__
 void count(
           COLUMNDATA *lt,
           COLUMNDATA *prt,
-          uint *count,
+          ulong *count,
           GComparisonExpression ex,
           int *r_p,
           int p_num,
@@ -46,7 +46,7 @@ void count(
       }
     }
 
-    count[x] = temp;
+    count[x] = (ulong)temp;
 
   }
 
@@ -65,7 +65,7 @@ void join(
           RESULT *jt,
           GComparisonExpression ex,
           int *r_p,
-          uint *count,
+          ulong *count,
           int p_num,
           int left
           ) 
@@ -76,7 +76,7 @@ void join(
 
   if(x < left){
 
-    uint writeloc = count[x];
+    ulong writeloc = count[x];
 
     GNValue tlgnv;
     if(x == left-1){

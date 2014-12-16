@@ -20,8 +20,6 @@ class GPUSHJ{
 
 public:
 
-#define JT_SIZE 120000000
-
 
     GPUSHJ();
 
@@ -35,7 +33,11 @@ public:
    inner tuple = right
  */
 
-    void setTableData(COLUMNDATA *oCD,COLUMNDATA *iCD,int outerSize,int innerSize){
+    bool setTableData(COLUMNDATA *oCD,
+                      COLUMNDATA *iCD,
+                      int outerSize,
+                      int innerSize,
+                      GComparisonExpression *GC){
         
         assert(outerSize >= 0 && innerSize >= 0);
         assert(oCD != NULL && iCD != NULL);
@@ -45,9 +47,6 @@ public:
         left = outerSize;
         right = innerSize;
 
-    }
-
-    bool setExpression(GComparisonExpression *GC){
         if(GC->getET() == EXPRESSION_TYPE_COMPARE_EQUAL){
             expression = GC;
             return true;
@@ -55,6 +54,7 @@ public:
             return false;
         }
     }
+
 
     RESULT *getResult(){
         return jt;

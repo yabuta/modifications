@@ -19,6 +19,9 @@
 #define _EE_STORAGE_TEMPTABLELIMITS_H_
 
 #include <stdint.h>
+#include <stdio.h>
+
+#define MAX_TEMPTABLE_SIZE static_cast<long>(1024)*1024*1024*4
 
 namespace voltdb {
 
@@ -32,9 +35,10 @@ public:
         : m_currMemoryInBytes(0)
         , m_peakMemoryInBytes(0)
         , m_logThreshold(logThreshold)
-        , m_memoryLimit(memoryLimit)
+//        , m_memoryLimit(memoryLimit)
+        , m_memoryLimit(MAX_TEMPTABLE_SIZE)
         , m_logLatch(false)
-    { }
+    {}
 
     /**
      * Track an increase in the amount of memory accumulated in temp tables.

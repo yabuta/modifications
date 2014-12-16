@@ -45,8 +45,7 @@ bool GPUNIJ::initGPU(){
   }
 
   /******************** GPU init here ************************************************/
-  //GPU仕様のために
-
+  /*
   res = cuInit(0);
   if (res != CUDA_SUCCESS) {
     printf("cuInit failed: res = %lu\n", (unsigned long)res);
@@ -62,7 +61,7 @@ bool GPUNIJ::initGPU(){
     printf("cuCtxCreate failed: res = %lu\n", (unsigned long)res);
     return false;
   }
-
+  */
   /*********************************************************************************/
 
 
@@ -111,10 +110,12 @@ void GPUNIJ::finish(){
     printf("cuModuleUnload module failed: res = %lu\n", (unsigned long)res);
   }  
 
+  /*
   res = cuCtxDestroy(ctx);
   if (res != CUDA_SUCCESS) {
     printf("cuCtxDestroy failed: res = %lu\n", (unsigned long)res);
   }
+  */
   
 }
 
@@ -141,11 +142,11 @@ bool GPUNIJ::join()
 {
 
   //int i, j;
-  int jt_size,gpu_size;
+  uint gpu_size;
+  ulong jt_size;
   CUdeviceptr lt_dev, rt_dev, jt_dev,count_dev, pre_dev;
   CUdeviceptr ltn_dev, rtn_dev;
   unsigned int block_x, block_y, grid_x, grid_y;
-
 
   /************** block_x * block_y is decided by BLOCK_SIZE. **************/
 
@@ -181,7 +182,7 @@ bool GPUNIJ::join()
     printf("cuMemAlloc (righttuple) failed\n");
     return false;
   }
-  res = cuMemAlloc(&count_dev, gpu_size * sizeof(int));
+  res = cuMemAlloc(&count_dev, gpu_size * sizeof(ulong));
   if (res != CUDA_SUCCESS) {
     printf("cuMemAlloc (count) failed\n");
     return false;
@@ -264,14 +265,15 @@ bool GPUNIJ::join()
         return false;
       }  
         
+
       /**************************** prefix sum *************************************/
-      if(!(presum(&count_dev,gpu_size))){
+      if(!((new GPUSCAN<ulong,ulong4>)->presum(&count_dev,gpu_size))){
         printf("count scan error.\n");
         return false;
       }
       /********************************************************************/      
 
-      if(!transport(count_dev,gpu_size,&jt_size)){
+      if(!(new GPUSCAN<ulong,ulong4>)->getValue(count_dev,gpu_size,&jt_size)){
         printf("transport error.\n");
         return false;
       }
@@ -282,7 +284,7 @@ bool GPUNIJ::join()
 
       ************************************************************************/
 
-      printf("jt_size %d\n",jt_size);
+      printf("jt_size %lu\n",jt_size);
 
       if(jt_size <0){
         return false;
@@ -312,8 +314,6 @@ bool GPUNIJ::join()
           (void *)&count_dev,
           (void *)&lls,
           (void *)&rrs,    
-          (void *)&ll,
-          (void *)&rr
         };
 
         res = cuLaunchKernel(

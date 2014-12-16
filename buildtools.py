@@ -239,7 +239,7 @@ def buildMakefile(CTX):
 
     makefile.write("# main jnilib target\n")
 #    makefile.write("nativelibs/libvoltdb-%s.$(JNIEXT): " % version + " ".join(jni_objects) + "\n")  # add part
-    makefile.write("nativelibs/libvoltdb-%s.$(JNIEXT): " % version + " ".join(jni_objects) + " objects/executors/scan_main.co objects/executors/scan.co objects/executors/GPUNIJ.co objects/executors/GPUSHJ.co" + "\n")  # add part
+    makefile.write("nativelibs/libvoltdb-%s.$(JNIEXT): " % version + " ".join(jni_objects) + " objects/executors/scan.co objects/executors/GPUNIJ.co objects/executors/GPUSHJ.co" + "\n")  # add part
     makefile.write("\t$(LINK.cpp) $(JNILIBFLAGS) $(GPUFLAGS) -o $@ $^\n")
     makefile.write("\n")
 
@@ -287,8 +287,8 @@ def buildMakefile(CTX):
     makefile.write("\tnvcc $(GPUFLAGS) $(INCLUDE) $(GPUARCHFLAGS) -cubin -o objects/executors/partitioning.cubin %spartitioning.cu\n"%(GPUPATH))
 
 #scan_main.cpp ,GPUNIJ.cpp ,GPUSHJ.cpp
-    makefile.write("objects/executors/scan_main.co:../../src/ee/executors/scan_main.cpp %s\n"%GPUINC)    
-    makefile.write("\tg++ $(INCLUDE) $(GPUFLAGS) -fPIC -o objects/executors/scan_main.co -c %sscan_main.cpp\n"%(GPUPATH))
+    #makefile.write("objects/executors/scan_main.co:../../src/ee/executors/scan_main.cpp %s\n"%GPUINC)    
+    #makefile.write("\tg++ $(INCLUDE) $(GPUFLAGS) -fPIC -o objects/executors/scan_main.co -c %sscan_main.cpp\n"%(GPUPATH))
     makefile.write("objects/executors/GPUNIJ.co:../../src/ee/executors/GPUNIJ.cpp objects/executors/join_gpu.cubin objects/executors/scan.co %s\n"%GPUINC)
     makefile.write("\tg++ $(INCLUDE) $(GPUFLAGS) -fPIC -o objects/executors/GPUNIJ.co -c %sGPUNIJ.cpp\n"%(GPUPATH))
     makefile.write("objects/executors/GPUSHJ.co:../../src/ee/executors/GPUSHJ.cpp objects/executors/hjoin_gpu.cubin objects/executors/partitioning.cubin objects/executors/scan.co %s\n"%GPUINC)

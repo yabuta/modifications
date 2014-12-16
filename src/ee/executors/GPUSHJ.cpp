@@ -42,7 +42,7 @@ bool GPUSHJ::initGPU(){
 
   /******************** GPU init here ************************************************/
   //GPU仕様のために
-
+  /*
   res = cuInit(0);
   if (res != CUDA_SUCCESS) {
     printf("cuInit failed: res = %lu\n", (unsigned long)res);
@@ -58,6 +58,7 @@ bool GPUSHJ::initGPU(){
     printf("cuCtxCreate failed: res = %lu\n", (unsigned long)res);
     return false;
   }
+  */
 
   /*********************************************************************************/
 
@@ -125,10 +126,12 @@ void GPUSHJ::finish(){
     printf("cuModuleUnload module failed: res = %lu\n", (unsigned long)res);
   }  
 
+  /*
   res = cuCtxDestroy(ctx);
   if (res != CUDA_SUCCESS) {
     printf("cuCtxDestroy failed: res = %lu\n", (unsigned long)res);
   }
+  */
   
 }
 
@@ -153,14 +156,13 @@ uint GPUSHJ::iDivUp(uint dividend, uint divisor)
 bool GPUSHJ::join(){
 
   //uint *count;
-  int jt_size;
+  ulong jt_size;
   CUresult res;
   CUdeviceptr lt_dev, rt_dev, jt_dev, bucket_dev, buckArray_dev ,idxcount_dev;
   CUdeviceptr prt_dev,rL_dev;
   CUdeviceptr ltn_dev, rtn_dev, jt_size_dev;
   CUdeviceptr c_dev;
   unsigned int block_x, grid_x;
-
 
   /********************************************************************
    *lt,rt,countのメモリを割り当てる。
@@ -179,7 +181,7 @@ bool GPUSHJ::join(){
     return false;
   }
   /*count */
-  res = cuMemAlloc(&c_dev, (left+1) * sizeof(uint));
+  res = cuMemAlloc(&c_dev, (left+1) * sizeof(ulong));
   if (res != CUDA_SUCCESS) {
     printf("cuMemAlloc (count) failed\n");
     return false;
@@ -237,12 +239,12 @@ bool GPUSHJ::join(){
     return false;
   }
 
-  res = cuMemAlloc(&rL_dev, t_num * PARTITION * sizeof(uint));
+  res = cuMemAlloc(&rL_dev, t_num * PARTITION * sizeof(ulong));
   if (res != CUDA_SUCCESS) {
     printf("cuMemAlloc (rL) failed\n");
     return false;
   }
-  checkCudaErrors(cudaMemset((void *)rL_dev,0,t_num*PARTITION*sizeof(uint)));
+  checkCudaErrors(cudaMemset((void *)rL_dev,0,t_num*PARTITION*sizeof(ulong)));
 
 
   t_num = right/RIGHT_PER_TH;
@@ -306,7 +308,7 @@ bool GPUSHJ::join(){
 
     /**************************** prefix sum *************************************/
 
-    if(!(presum(&rL_dev,t_num*p_n))){
+    if(!((new GPUSCAN<ulong,ulong4>)->presum(&rL_dev,t_num*p_n))){
       printf("lL presum error\n");
       return false;
     }
@@ -402,7 +404,7 @@ bool GPUSHJ::join(){
     return false;
   }
 
-  if(!(presum(&rstartPos_dev,p_num+1))){
+  if(!((new GPUSCAN<uint,uint4>)->presum(&rstartPos_dev,p_num+1))){
     printf("rstartpos presum error\n");
     return false;
   }
@@ -483,7 +485,7 @@ bool GPUSHJ::join(){
 
   /**************************** prefix sum *************************************/
 
-  if(!(presum(&c_dev,(uint)left+1))){
+  if(!((new GPUSCAN<ulong,ulong4>)->presum(&c_dev,(uint)left+1))){
     printf("count scan error\n");
     return false;
   }
@@ -497,7 +499,7 @@ bool GPUSHJ::join(){
    jt memory alloc and jt upload
   ************************************************************************/
 
-  if(!transport(c_dev,(uint)left+1,&jt_size)){
+  if(!(new GPUSCAN<ulong,ulong4>)->getValue(c_dev,(uint)left+1,&jt_size)){
     printf("transport error.\n");
     return false;
   }

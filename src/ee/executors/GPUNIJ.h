@@ -20,9 +20,6 @@ class GPUNIJ{
 
 public:
 
-#define JT_SIZE 120000000
-
-
     GPUNIJ();
 
     bool initGPU();
@@ -35,7 +32,11 @@ public:
    inner tuple = right
  */
 
-    void setTableData(COLUMNDATA *oCD,COLUMNDATA *iCD,int outerSize,int innerSize){
+    bool setTableData(COLUMNDATA *oCD,
+                      COLUMNDATA *iCD,
+                      int outerSize,
+                      int innerSize,
+                      GComparisonExpression *GC){
         
         assert(outerSize >= 0 && innerSize >= 0);
         assert(oCD != NULL && iCD != NULL);
@@ -44,13 +45,15 @@ public:
         right_CD = iCD;
         left = outerSize;
         right = innerSize;
+        
+        expression = GC;
 
-        PART = 262144;
+        PART = 256 * 1024;
         
         uint biggerTupleSize = left;
         if(left < right) biggerTupleSize = right;
 
-        for(int i=32768 ; i<=262144 ; i = i*2){
+        for(int i=32768 ; i<=256 * 1024 ; i = i*2){
             if(biggerTupleSize<=i){
                 PART = i;
                 break;
@@ -58,11 +61,9 @@ public:
         }
         printf("PART : %d\n",PART);
 
-    }
-
-    bool setExpression(GComparisonExpression *GC){
-        expression = GC;
+        //NIJ is always true. SHJ may become false.
         return true;
+
     }
 
     RESULT *getResult(){

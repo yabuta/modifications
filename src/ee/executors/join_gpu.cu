@@ -25,7 +25,7 @@ void count(
           COLUMNDATA *oCD,
           COLUMNDATA *iCD,
           GComparisonExpression ex,
-          int *count,
+          ulong *count,
           int ltn,
           int rtn
           ) 
@@ -36,6 +36,10 @@ void count(
   int k = blockIdx.y * gridDim.x * blockDim.x;
 
   __shared__ COLUMNDATA tiCD[BLOCK_SIZE_Y];
+
+  /**
+     TO DO : tiCD shoud be stored in parallel.but I have bug.
+   */
   if(threadIdx.x==0){
     for(uint j=0 ; j<BLOCK_SIZE_Y && BLOCK_SIZE_Y*blockIdx.y+j<rtn ; j++){
       tiCD[j] = iCD[BLOCK_SIZE_Y*blockIdx.y + j];
@@ -57,7 +61,7 @@ void count(
         mcount++;
       }
     }
-
+   
     count[i+k] = mcount;
   }
 
@@ -73,11 +77,9 @@ __global__ void join(
           COLUMNDATA *iCD,
           RESULT *p,
           GComparisonExpression ex,
-          int *count,
+          ulong *count,
           int ltn,
-          int rtn,
-          int ll,
-          int rr
+          int rtn
           ) 
 {
 
@@ -96,7 +98,7 @@ __global__ void join(
 
     COLUMNDATA toCD = oCD[i];
     int rtn_g = rtn;
-    int writeloc = count[i+k];
+    ulong writeloc = count[i+k];
     for(uint j = 0; j<BLOCK_SIZE_Y && BLOCK_SIZE_Y*blockIdx.y+j<rtn_g;j++){
       if(ex.eval(toCD.gn,tiCD[j].gn)){
         p[writeloc].lkey = toCD.num;

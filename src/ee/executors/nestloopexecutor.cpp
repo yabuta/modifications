@@ -478,26 +478,12 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
           printf("innertable size = %d\n",j);
         }
 
-
-        bool gpuflag = true;
-
         //GPUNIJ *gn = new GPUNIJ();
 
-        GPUSHJ *gn = new GPUSHJ();
+        GPUNIJ *gn = new GPUNIJ();
         GComparisonExpression GC(et);
-        assert(GC);
 
-        /*
-        if(et != EXPRESSION_TYPE_COMPARE_EQUAL){
-          gpuflag = false;
-        }
-        */
-        gpuflag = gpuflag && gn->initGPU() && gn->setExpression(&GC);        
-
-        if(gpuflag){
-
-          /*set table data: table size , GNValue ,expression*/
-          gn->setTableData(outer_CD,inner_CD,outerSize,innerSize);
+        if(gn->initGPU() && gn->setTableData(outer_CD,inner_CD,outerSize,innerSize,&GC)){
 
           RESULT *jt = NULL;
           int jt_size = 0;

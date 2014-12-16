@@ -8,8 +8,8 @@
 namespace voltdb{
 
 //1blockでのスレッド数の定義。
-#define BLOCK_SIZE_X 256  //outer ,left
-#define BLOCK_SIZE_Y 128  //inner ,right
+#define BLOCK_SIZE_X 512  //outer ,left
+#define BLOCK_SIZE_Y 512  //inner ,right
 
 #define PARTITION 64
 #define RADIX 6
@@ -21,11 +21,12 @@ namespace voltdb{
 #define PART_STANDARD 1
 #define JOIN_SHARED 256
 
-
+/*
 typedef struct _TUPLE {
     int key;
     int val;
 } TUPLE;
+*/
 
 typedef struct _RESULT {
     int lkey;

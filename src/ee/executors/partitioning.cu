@@ -17,7 +17,7 @@ extern "C" {
 __global__
 void rcount_partitioning(
           COLUMNDATA *t,
-          uint *L,
+          ulong *L,
           int p_num,
           int t_num,
           int rows_num,
@@ -58,7 +58,7 @@ void rcount_partitioning(
       
     }
     for(uint j=0 ; j*Dim+threadIdx.x<p_n*Dim ; j++){
-      L[t_n*j + blockIdx.x*blockDim.x + threadIdx.x] = part[j*Dim+threadIdx.x];
+      L[t_n*j + blockIdx.x*blockDim.x + threadIdx.x] = (ulong)part[j*Dim+threadIdx.x];
     }
   }
 }
@@ -68,7 +68,7 @@ __global__
 void rpartitioning(
           COLUMNDATA *t,
           COLUMNDATA *pt,
-          uint *L,
+          ulong *L,
           int p_num,
           int t_num,
           int rows_num,
@@ -87,9 +87,9 @@ void rpartitioning(
   int DEF = blockIdx.x * blockDim.x * RIGHT_PER_TH;
   int Dim = (gridDim.x-1 == blockIdx.x) ? (t_n - blockIdx.x*blockDim.x):blockDim.x;
 
-  __shared__ int part[SHARED_MAX];
+  __shared__ uint part[SHARED_MAX];
   for(uint j=0 ; j*Dim+threadIdx.x<p_n*Dim ; j++){
-    part[j*Dim+threadIdx.x]=L[t_n*j+blockIdx.x*blockDim.x+threadIdx.x];
+    part[j*Dim+threadIdx.x]=(uint)L[t_n*j+blockIdx.x*blockDim.x+threadIdx.x];
   }
   
   __syncthreads();
