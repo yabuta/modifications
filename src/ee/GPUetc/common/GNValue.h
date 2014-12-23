@@ -89,18 +89,20 @@ class GNValue {
     /* Check if the value represents SQL NULL */
     CUDAH bool isNull() const;
 
+    CUDAH void setNull();
+
     CUDAH bool getSourceInlined() const;
 
     CUDAH int compare_withoutNull(const GNValue rhs) const;
 
     /* Return a boolean NValue with the comparison result */
 
-    CUDAH bool op_equals_withoutNull(const GNValue rhs) const;
-    CUDAH bool op_notEquals_withoutNull(const GNValue rhs) const;
-    CUDAH bool op_lessThan_withoutNull(const GNValue rhs) const;
-    CUDAH bool op_lessThanOrEqual_withoutNull(const GNValue rhs) const;
-    CUDAH bool op_greaterThan_withoutNull(const GNValue rhs) const;
-    CUDAH bool op_greaterThanOrEqual_withoutNull(const GNValue rhs) const;
+    CUDAH bool op_equals_withoutNull(const GNValue *rhs) const;
+    CUDAH bool op_notEquals_withoutNull(const GNValue *rhs) const;
+    CUDAH bool op_lessThan_withoutNull(const GNValue *rhs) const;
+    CUDAH bool op_lessThanOrEqual_withoutNull(const GNValue *rhs) const;
+    CUDAH bool op_greaterThan_withoutNull(const GNValue *rhs) const;
+    CUDAH bool op_greaterThanOrEqual_withoutNull(const GNValue *rhs) const;
 
     static const uint16_t kMaxDecPrec = 38;
     static const uint16_t kMaxDecScale = 12;
@@ -109,7 +111,7 @@ class GNValue {
 /**
  * Retrieve a boolean NValue that is true
  */
-    inline GNValue getTrue() {
+    inline CUDAH static GNValue getTrue() {
         GNValue retval(VALUE_TYPE_BOOLEAN);
         retval.getBoolean() = true;
         return retval;
@@ -118,7 +120,7 @@ class GNValue {
 /**
  * Retrieve a boolean NValue that is false
  */
-    inline GNValue getFalse() {
+    inline CUDAH static GNValue getFalse() {
         GNValue retval(VALUE_TYPE_BOOLEAN);
         retval.getBoolean() = false;
         return retval;
@@ -151,7 +153,27 @@ class GNValue {
         return *reinterpret_cast<const int8_t*>(m_data) == INT8_NULL;
     }
 
+    CUDAH static void getNullValueByPointer(GNValue *retval) {
+        retval->setValueType(VALUE_TYPE_NULL);
+        retval->tagAsNull();
+    }
 
+    CUDAH static void getNullValueByPointer(GNValue *retval,ValueType type) {
+        retval->setValueType(type);
+        retval->setNull();
+    }
+
+    CUDAH static GNValue getNullValue(){
+        GNValue retval(VALUE_TYPE_NULL);
+        retval.tagAsNull();
+        return retval;
+    }
+
+    CUDAH static GNValue getNullValue(ValueType type) {
+        GNValue retval(type);
+        retval.setNull();
+        return retval;
+    }
 
     CUDAH int getHashValue(int shift, int partition){
         assert(m_valueType != VALUE_TYPE_VARCHAR && m_valueType != VALUE_TYPE_VARBINARY && m_valueType != VALUE_TYPE_DECIMAL);
@@ -207,7 +229,7 @@ class GNValue {
         return -1;//TODO: maybe -1 is worse value.
     }
 
-    CUDAH static GNValue initFromTupleStorage(const void *storage, ValueType type, bool isInlined);
+    CUDAH static void initFromTupleStorage(const void *storage, ValueType type, GNValue *retval);
 
     CUDAH void setMdata(const char *input){
         memcpy(m_data,input,16);
@@ -256,7 +278,7 @@ class GNValue {
         m_sourceInlined = false;
     }
 
-    CUDAH void tagAsNull() { m_data[13] = OBJECT_NULL_BIT; }
+    inline CUDAH void tagAsNull() { m_data[13] = OBJECT_NULL_BIT; }
 
 
     CUDAH const int8_t& getTinyInt() const {
@@ -415,7 +437,7 @@ class GNValue {
     }
 
     CUDAH int compareTinyInt (const GNValue rhs) const {
-        assert(m_valueType == VALUE_TYPE_TINYINT);
+        //assert(m_valueType == VALUE_TYPE_TINYINT);
 
         // get the right hand side as a bigint
         if (rhs.getValueType() == VALUE_TYPE_DOUBLE) {
@@ -437,7 +459,7 @@ class GNValue {
     }
 
     CUDAH int compareSmallInt (const GNValue rhs) const {
-        assert(m_valueType == VALUE_TYPE_SMALLINT);
+        //assert(m_valueType == VALUE_TYPE_SMALLINT);
 
         // get the right hand side as a bigint
         if (rhs.getValueType() == VALUE_TYPE_DOUBLE) {
@@ -458,7 +480,7 @@ class GNValue {
     }
 
     CUDAH int compareInteger (const GNValue rhs) const {
-        assert(m_valueType == VALUE_TYPE_INTEGER);
+        //assert(m_valueType == VALUE_TYPE_INTEGER);
 
         // get the right hand side as a bigint
         if (rhs.getValueType() == VALUE_TYPE_DOUBLE) {
@@ -481,7 +503,7 @@ class GNValue {
 
 
     CUDAH int compareBigInt (const GNValue rhs) const {
-        assert(m_valueType == VALUE_TYPE_BIGINT);
+        //assert(m_valueType == VALUE_TYPE_BIGINT);
 
         // get the right hand side as a bigint
         if (rhs.getValueType() == VALUE_TYPE_DOUBLE) {
@@ -502,7 +524,7 @@ class GNValue {
     }
 
     CUDAH int compareTimestamp (const GNValue rhs) const {
-        assert(m_valueType == VALUE_TYPE_TIMESTAMP);
+        //assert(m_valueType == VALUE_TYPE_TIMESTAMP);
 
         // get the right hand side as a bigint
         if (rhs.getValueType() == VALUE_TYPE_DOUBLE) {
@@ -524,7 +546,7 @@ class GNValue {
 
     CUDAH int compareDoubleValue (const GNValue rhs) const {
 
-        assert(m_valueType == VALUE_TYPE_DOUBLE);
+        //assert(m_valueType == VALUE_TYPE_DOUBLE);
 
         const double lhsValue = getDouble();
         double rhsValue;
@@ -640,57 +662,110 @@ inline CUDAH GNValue::GNValue() {
     m_sourceInlined = false;
 }
 
+
+
+/**
+ * Set this NValue to null.
+ */
+inline CUDAH void GNValue::setNull() {
+    tagAsNull(); // This gets overwritten for DECIMAL -- but that's OK.
+    switch (getValueType())
+    {
+    case VALUE_TYPE_BOOLEAN:
+        // HACK BOOL NULL
+        *reinterpret_cast<int8_t*>(m_data) = GINT8_NULL;
+        break;
+    case VALUE_TYPE_NULL:
+    case VALUE_TYPE_INVALID:
+        return;
+    case VALUE_TYPE_TINYINT:
+        getTinyInt() = GINT8_NULL;
+        break;
+    case VALUE_TYPE_SMALLINT:
+        getSmallInt() = GINT16_NULL;
+        break;
+    case VALUE_TYPE_INTEGER:
+        getInteger() = GINT32_NULL;
+        break;
+    case VALUE_TYPE_TIMESTAMP:
+        getTimestamp() = GINT64_NULL;
+        break;
+    case VALUE_TYPE_BIGINT:
+        getBigInt() = GINT64_NULL;
+        break;
+    case VALUE_TYPE_DOUBLE:
+        getDouble() = GDOUBLE_MIN;
+        break;
+    case VALUE_TYPE_VARCHAR:
+    case VALUE_TYPE_VARBINARY:
+    case VALUE_TYPE_DECIMAL:
+        break;
+    default: {
+        break;
+    }
+    }
+}
+
+
+
 /**
  * Initialize an NValue of the specified type from the tuple
  * storage area provided. If this is an Object type then the third
  * argument indicates whether the object is stored in the tuple inline.
  */
-inline CUDAH GNValue GNValue::initFromTupleStorage(const void *storage, ValueType type, bool isInlined)
+inline CUDAH void GNValue::initFromTupleStorage(const void *storage, ValueType type,GNValue *retval)
 {
 
     assert(type != VALUE_TYPE_VARCHAR && type != VALUE_TYPE_VARBINARY && type != VALUE_TYPE_DECIMAL);
+/*
+    if(type == VALUE_TYPE_VARCHAR || type == VALUE_TYPE_VARBINARY || type == VALUE_TYPE_DECIMAL){
+        retval->tagAsNull();
+        return;
+    }
+*/
 
-    GNValue retval(type);
+    retval->setValueType(type);
+
     switch (type)
     {
     case VALUE_TYPE_INTEGER:
-        if ((retval.getInteger() = *reinterpret_cast<const int32_t*>(storage)) == GINT32_NULL) {
-            retval.tagAsNull();
+        if ((retval->getInteger() = *reinterpret_cast<const int32_t*>(storage)) == GINT32_NULL) {
+            retval->tagAsNull();
         }
         break;
     case VALUE_TYPE_BIGINT:
-        if ((retval.getBigInt() = *reinterpret_cast<const int64_t*>(storage)) == GINT64_NULL) {
-            retval.tagAsNull();
+        if ((retval->getBigInt() = *reinterpret_cast<const int64_t*>(storage)) == GINT64_NULL) {
+            retval->tagAsNull();
         }
         break;
     case VALUE_TYPE_DOUBLE:
-        if ((retval.getDouble() = *reinterpret_cast<const double*>(storage)) <= GDOUBLE_NULL) {
-            retval.tagAsNull();
+        if ((retval->getDouble() = *reinterpret_cast<const double*>(storage)) <= GDOUBLE_NULL) {
+            retval->tagAsNull();
         }
         break;
     case VALUE_TYPE_TIMESTAMP:
-        if ((retval.getTimestamp() = *reinterpret_cast<const int64_t*>(storage)) == GINT64_NULL) {
-            retval.tagAsNull();
+        if ((retval->getTimestamp() = *reinterpret_cast<const int64_t*>(storage)) == GINT64_NULL) {
+            retval->tagAsNull();
         }
         break;
     case VALUE_TYPE_TINYINT:
-        if ((retval.getTinyInt() = *reinterpret_cast<const int8_t*>(storage)) == GINT8_NULL) {
-            retval.tagAsNull();
+        if ((retval->getTinyInt() = *reinterpret_cast<const int8_t*>(storage)) == GINT8_NULL) {
+            retval->tagAsNull();
         }
         break;
     case VALUE_TYPE_SMALLINT:
-        if ((retval.getSmallInt() = *reinterpret_cast<const int16_t*>(storage)) == GINT16_NULL) {
-            retval.tagAsNull();
+        if ((retval->getSmallInt() = *reinterpret_cast<const int16_t*>(storage)) == GINT16_NULL) {
+            retval->tagAsNull();
         }
         break;
     case VALUE_TYPE_VARCHAR:
     case VALUE_TYPE_VARBINARY:
     case VALUE_TYPE_DECIMAL:
     default:
-        retval.tagAsNull();
+        retval->tagAsNull();
     }
+    //return retval;
 
-    return retval;
 }
 
 
@@ -749,39 +824,39 @@ inline CUDAH bool GNValue::isNull() const {
 
 
 // without null comparison
-inline CUDAH bool GNValue::op_equals_withoutNull(const GNValue rhs) const {
-    int temp = compare_withoutNull(rhs);
+inline CUDAH bool GNValue::op_equals_withoutNull(const GNValue *rhs) const {
+    int temp = compare_withoutNull(*rhs);
     if(temp == -3) return false;
     return temp == 0;
 }
 
-inline CUDAH bool GNValue::op_notEquals_withoutNull(const GNValue rhs) const {
-    int temp = compare_withoutNull(rhs);
+inline CUDAH bool GNValue::op_notEquals_withoutNull(const GNValue *rhs) const {
+    int temp = compare_withoutNull(*rhs);
     if(temp == -3) return false;
     return temp != 0;
 }
 
-inline CUDAH bool GNValue::op_lessThan_withoutNull(const GNValue rhs) const {
-    int temp = compare_withoutNull(rhs);
+inline CUDAH bool GNValue::op_lessThan_withoutNull(const GNValue *rhs) const {
+    int temp = compare_withoutNull(*rhs);
     if(temp == -3) return false;
     return temp < 0;
 }
 
-inline CUDAH bool GNValue::op_lessThanOrEqual_withoutNull(const GNValue rhs) const {
-    int temp = compare_withoutNull(rhs);
+inline CUDAH bool GNValue::op_lessThanOrEqual_withoutNull(const GNValue *rhs) const {
+    int temp = compare_withoutNull(*rhs);
     if(temp == -3) return false;
     return temp <= 0;
 
 }
 
-inline CUDAH bool GNValue::op_greaterThan_withoutNull(const GNValue rhs) const {
-    int temp = compare_withoutNull(rhs);
+inline CUDAH bool GNValue::op_greaterThan_withoutNull(const GNValue *rhs) const {
+    int temp = compare_withoutNull(*rhs);
     if(temp == -3) return false;
     return temp > 0;
 }
 
-inline CUDAH bool GNValue::op_greaterThanOrEqual_withoutNull(const GNValue rhs) const {
-    int temp = compare_withoutNull(rhs);
+inline CUDAH bool GNValue::op_greaterThanOrEqual_withoutNull(const GNValue *rhs) const {
+    int temp = compare_withoutNull(*rhs);
     if(temp == -3) return false;
     return temp >= 0;
 }

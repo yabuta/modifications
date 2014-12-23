@@ -280,7 +280,7 @@ def buildMakefile(CTX):
     makefile.write("objects/executors/scan.co:../../src/ee/executors/scan.cu %s\n"%GPUINC)
     makefile.write("\tnvcc $(GPUFLAGS) $(INCLUDE) $(GPUARCHFLAGS) -Xcompiler '-fPIC' -c -o objects/executors/scan.co %sscan.cu\n"%(GPUPATH))    
     makefile.write("objects/executors/join_gpu.cubin:../../src/ee/executors/join_gpu.cu %s\n"%GPUINC)
-    makefile.write("\tnvcc $(GPUFLAGS) $(INCLUDE) $(GPUARCHFLAGS) -cubin -o objects/executors/join_gpu.cubin %sjoin_gpu.cu\n"%(GPUPATH))
+    makefile.write("\tnvcc $(GPUFLAGS) $(INCLUDE) $(GPUARCHFLAGS) --ptxas-options=-v -cubin -o objects/executors/join_gpu.cubin %sjoin_gpu.cu\n"%(GPUPATH))
     makefile.write("objects/executors/hjoin_gpu.cubin:../../src/ee/executors/hjoin_gpu.cu %s\n"%GPUINC)
     makefile.write("\tnvcc $(GPUFLAGS) $(INCLUDE) $(GPUARCHFLAGS) -cubin -o objects/executors/hjoin_gpu.cubin %shjoin_gpu.cu\n"%(GPUPATH))
     makefile.write("objects/executors/partitioning.cubin:../../src/ee/executors/partitioning.cu %s\n"%GPUINC)

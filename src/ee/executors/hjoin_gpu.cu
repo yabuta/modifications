@@ -40,8 +40,8 @@ void count(
     int temp2 = r_p[idx+1];
 
 
-    for(int k=r_p[idx] ; k<temp2 ; k++){
-      if(ex.eval(tlgnv,prt[k].gn)){
+    for(int y=r_p[idx] ; y<temp2 ; y++){
+      if(ex.eval(tlgnv,prt[y].gn)){
         temp++;
       }
     }
@@ -88,10 +88,10 @@ void join(
     int idx = tlgnv.getHashValue( 0 , p_num);
     int temp2 = r_p[idx+1];
 
-    for(int k=r_p[idx] ; k<temp2 ; k ++){
-      if(ex.eval(tlgnv,prt[k].gn)){
+    for(int y=r_p[idx] ; y<temp2 ; y ++){
+      if(ex.eval(tlgnv,prt[y].gn)){
         jt[writeloc].lkey = lt[x].num;
-        jt[writeloc].rkey = prt[k].num;
+        jt[writeloc].rkey = prt[y].num;
         writeloc++;
       }
     }

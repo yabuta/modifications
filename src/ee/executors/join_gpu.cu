@@ -32,7 +32,7 @@ void count(
 
 {
 
-  int i = blockIdx.x * blockDim.x + threadIdx.x;
+  int x = blockIdx.x * blockDim.x + threadIdx.x;
   int k = blockIdx.y * gridDim.x * blockDim.x;
 
   __shared__ COLUMNDATA tiCD[BLOCK_SIZE_Y];
@@ -40,33 +40,42 @@ void count(
   /**
      TO DO : tiCD shoud be stored in parallel.but I have bug.
    */
+
   if(threadIdx.x==0){
     for(uint j=0 ; j<BLOCK_SIZE_Y && BLOCK_SIZE_Y*blockIdx.y+j<rtn ; j++){
       tiCD[j] = iCD[BLOCK_SIZE_Y*blockIdx.y + j];
     }
   }
+
+  /*
+  for(int i = threadIdx.x; i<BLOCK_SIZE_Y && BLOCK_SIZE_Y*blockIdx.y+i<rtn ; i+=blockDim.x){
+    tiCD[i] = iCD[BLOCK_SIZE_Y*blockIdx.y + i];
+    //    memcpy(&tiGTT[i*its],iGTT + (block_size_y*blockIdx.y+i)*its,its);
+  } 
+  */
+  
   __syncthreads();
 
-  count[i+k] = 0;
+  count[x+k] = 0;
 
-  if(i<ltn){
+  if(x<ltn){
 
 
     //A global memory read is very slow.So repeating values is stored register memory
-    COLUMNDATA toCD=oCD[i];
+    COLUMNDATA toCD=oCD[x];
     int rtn_g = rtn;
     int mcount = 0;
-    for(uint j = 0; j<BLOCK_SIZE_Y && BLOCK_SIZE_Y*blockIdx.y+j<rtn_g;j++){
-      if(ex.eval(toCD.gn,tiCD[j].gn)){
+    for(uint y = 0; y<BLOCK_SIZE_Y && BLOCK_SIZE_Y*blockIdx.y+y<rtn_g;y++){
+      if(ex.eval(toCD.gn,tiCD[y].gn)){
         mcount++;
       }
     }
    
-    count[i+k] = mcount;
+    count[x+k] = mcount;
   }
 
-  if(i+k == (blockDim.x*gridDim.x*gridDim.y-1)){
-    count[i+k+1] = 0;
+  if(x+k == (blockDim.x*gridDim.x*gridDim.y-1)){
+    count[x+k+1] = 0;
   }
 
 }
@@ -83,26 +92,35 @@ __global__ void join(
           ) 
 {
 
-  int i = blockIdx.x * blockDim.x + threadIdx.x;
+  int x = blockIdx.x * blockDim.x + threadIdx.x;
   int k = blockIdx.y * gridDim.x * blockDim.x;
 
   __shared__ COLUMNDATA tiCD[BLOCK_SIZE_Y];
+
   if(threadIdx.x==0){
     for(uint j=0 ; j<BLOCK_SIZE_Y && BLOCK_SIZE_Y*blockIdx.y+j<rtn ; j++){
       tiCD[j] = iCD[BLOCK_SIZE_Y*blockIdx.y + j];
     }
   }
+
+  /*
+  for(int i = threadIdx.x; i<BLOCK_SIZE_Y && BLOCK_SIZE_Y*blockIdx.y+i<rtn ; i+=blockDim.x){
+    tiCD[i] = iCD[BLOCK_SIZE_Y*blockIdx.y + i];
+    //    memcpy(&tiGTT[i*its],iGTT + (block_size_y*blockIdx.y+i)*its,its);
+  } 
+  */ 
   __syncthreads();
 
-  if(i<ltn){
 
-    COLUMNDATA toCD = oCD[i];
+  if(x<ltn){
+
+    COLUMNDATA toCD = oCD[x];
     int rtn_g = rtn;
-    ulong writeloc = count[i+k];
-    for(uint j = 0; j<BLOCK_SIZE_Y && BLOCK_SIZE_Y*blockIdx.y+j<rtn_g;j++){
-      if(ex.eval(toCD.gn,tiCD[j].gn)){
-        p[writeloc].lkey = toCD.num;
-        p[writeloc].rkey = tiCD[j].num;
+    ulong writeloc = count[x+k];
+    for(uint y = 0; y<BLOCK_SIZE_Y && BLOCK_SIZE_Y*blockIdx.y+y<rtn_g;y++){
+      if(ex.eval(toCD.gn,tiCD[y].gn)){
+        p[writeloc].lkey = oCD[x].num;
+        p[writeloc].rkey = iCD[BLOCK_SIZE_Y*blockIdx.y+y].num;
         writeloc++;
       }
     }
