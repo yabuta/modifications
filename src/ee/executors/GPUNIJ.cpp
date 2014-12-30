@@ -45,7 +45,7 @@ bool GPUNIJ::initGPU(){
   }
 
   /******************** GPU init here ************************************************/
-  /*
+
   res = cuInit(0);
   if (res != CUDA_SUCCESS) {
     printf("cuInit failed: res = %lu\n", (unsigned long)res);
@@ -61,7 +61,7 @@ bool GPUNIJ::initGPU(){
     printf("cuCtxCreate failed: res = %lu\n", (unsigned long)res);
     return false;
   }
-  */
+
   /*********************************************************************************/
 
 

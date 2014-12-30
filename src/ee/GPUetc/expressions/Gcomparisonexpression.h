@@ -81,6 +81,8 @@ public:
 
     CUDAH bool eval(GNValue NV1, GNValue NV2){
 
+        if(NV1.isNull() || NV2.isNull()) return false;
+        
         switch(et){
         case (EXPRESSION_TYPE_COMPARE_EQUAL):
             return NV1.op_equals_withoutNull(&NV2);
